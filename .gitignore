@@ -2,6 +2,7 @@
 dist
 renderer/.next
 renderer/out
+EmapiLog
 
 # dependencies
 node_modules
