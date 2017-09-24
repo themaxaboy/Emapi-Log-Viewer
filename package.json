@@ -1,6 +1,6 @@
 {
-  "name": "electron-next-skeleton",
-  "productName": "ElectronNext",
+  "name": "emapi-log-viewer",
+  "productName": "Emapi Log Viewer",
   "version": "1.0.0",
   "main": "main/index.js",
   "scripts": {

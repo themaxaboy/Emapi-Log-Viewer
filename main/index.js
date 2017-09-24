@@ -3,7 +3,7 @@ const { join } = require('path')
 const { format } = require('url')
 
 // Packages
-const { BrowserWindow, app, ipcMain } = require('electron')
+const { BrowserWindow, app, ipcMain,dialog  } = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
 
@@ -33,4 +33,12 @@ app.on('window-all-closed', app.quit)
 // listen the channel `message` and resend the received message to the renderer process
 ipcMain.on('message', (event, message) => {
   event.sender.send('message', message)
+})
+
+ipcMain.on('open-file-dialog', function (event) {
+  dialog.showOpenDialog({
+    properties: ['openFile', 'openDirectory']
+  }, function (files) {
+    if (files) event.sender.send('selected-directory', files)
+  })
 })

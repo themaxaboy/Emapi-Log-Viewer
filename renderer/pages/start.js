@@ -1,18 +1,60 @@
 import { Component } from "react";
 import { ipcRenderer } from "electron";
+import fs from "fs";
 
 import Head from "next/head";
 import Link from "next/link";
 
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import Toolbar from "../components/Toolbar";
+
 export default class extends Component {
   state = {
     input: "",
-    message: null
+    message: null,
+    path: "",
+    dataHeader: []
   };
 
   componentDidMount() {
     // start listening the channel message
     ipcRenderer.on("message", this.handleMessage);
+
+    ipcRenderer.on("selected-directory", (event, path) => {
+      console.log(path);
+      let directory = String(path);
+
+      fs.readdir(directory, (err, files) => {
+        files.forEach(filename => {
+          let filepath = directory + "\\" + filename;
+          console.log(filepath);
+
+          fs.readFile(filepath, "utf8", (err, data) => {
+            if (err) {
+              return console.log(err);
+            }
+
+            let dataHeaderPack = [];
+
+            data.trim().split(/\n\r/).map(dateSet => {
+              dateSet
+                .trim()
+                .split(/\n/)
+                .map((dateLineHead, index) => {
+                  if (index == 0) {
+                    //console.log(index + " : " + dateLineHead);
+                    dataHeaderPack.push(dateLineHead);
+                  }
+                });
+            });
+            this.setState({
+              dataHeader: [...this.state.dataHeader, ...dataHeaderPack]
+            });
+          });
+        });
+      });
+    });
   }
 
   componentWillUnmount() {
@@ -35,27 +77,14 @@ export default class extends Component {
     this.setState({ message: null });
   };
 
+  handleBrowse = event => {
+    ipcRenderer.send("open-file-dialog");
+  };
+
   render() {
     return (
       <div>
-        <Head>
-          <title>Hello Electron!</title>
-
-          <link rel="stylesheet" href="/static/css/photon.min.css" />
-        </Head>
-
-        <h1>Hello Electron!</h1>
-
-        <Link href="/about">
-          <a>About Page</a>
-        </Link>
-
-        {this.state.message && <p>{this.state.message}</p>}
-
-        <form onSubmit={this.handleSubmit}>
-          <input type="text" onChange={this.handleChange} />
-        </form>
-
+        <Header title="Emapi Log Viewer" />
         <div className="window">
           <header className="toolbar toolbar-header">
             <div className="toolbar-actions">
@@ -64,23 +93,13 @@ export default class extends Component {
                   <span className="icon icon-home" />
                 </button>
                 <button className="btn btn-default">
-                  <span className="icon icon-folder" />
+                  <span className="icon icon-home icon-text" />
+                  Filters
                 </button>
-                <button className="btn btn-default active">
-                  <span className="icon icon-cloud" />
-                </button>
-                <button className="btn btn-default">
-                  <span className="icon icon-popup" />
-                </button>
-                <button className="btn btn-default">
-                  <span className="icon icon-shuffle" />
+                <button className="btn btn-default" onClick={this.handleBrowse}>
+                  Browse...
                 </button>
               </div>
-
-              <button className="btn btn-default">
-                <span className="icon icon-home icon-text" />
-                Filters
-              </button>
 
               <button className="btn btn-default btn-dropdown pull-right">
                 <span className="icon icon-megaphone" />
@@ -92,34 +111,10 @@ export default class extends Component {
             <div className="pane-group">
               <div className="pane pane-sm sidebar">
                 <nav className="nav-group">
-                  <h5 className="nav-group-title">Favorites</h5>
-                  <span className="nav-group-item">
-                    <span className="icon icon-home" />
-                    connors
-                  </span>
+                  <h5 className="nav-group-title">Emapi Viewer</h5>
                   <span className="nav-group-item active">
-                    <span className="icon icon-light-up" />
-                    Photon
-                  </span>
-                  <span className="nav-group-item">
-                    <span className="icon icon-download" />
-                    Downloads
-                  </span>
-                  <span className="nav-group-item">
-                    <span className="icon icon-folder" />
-                    Documents
-                  </span>
-                  <span className="nav-group-item">
-                    <span className="icon icon-window" />
-                    Applications
-                  </span>
-                  <span className="nav-group-item">
-                    <span className="icon icon-signal" />
-                    AirDrop
-                  </span>
-                  <span className="nav-group-item">
-                    <span className="icon icon-monitor" />
-                    Desktop
+                    <span className="icon icon-home" />
+                    Emapi Logs
                   </span>
                 </nav>
               </div>
@@ -128,49 +123,34 @@ export default class extends Component {
                 <table className="table-striped">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Kind</th>
-                      <th>Date Modified</th>
-                      <th>Author</th>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th>Time</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>bars.scss</td>
-                      <td>Document</td>
-                      <td>Oct 13, 2015</td>
-                      <td>connors</td>
-                    </tr>
-                    <tr>
-                      <td>base.scss</td>
-                      <td>Document</td>
-                      <td>Oct 13, 2015</td>
-                      <td>connors</td>
-                    </tr>
+                    {this.state.dataHeader.map((data, index) => {
+                      return (
+                        <tr>
+                          <td>{index}</td>
+                          <td>{data}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               <div className="pane">
                 <div className="tab-group">
-                  <div className="tab-item">
-                    <span className="icon icon-cancel icon-close-tab" />
-                    Tab
-                  </div>
-                  <div className="tab-item active">
-                    <span className="icon icon-cancel icon-close-tab" />
-                    Tab active
-                  </div>
-                  <div className="tab-item tab-item-fixed">
-                    <span className="icon icon-plus" />
-                  </div>
+                  <div className="tab-item active">General</div>
+                  <div className="tab-item ">Details</div>
                 </div>
               </div>
             </div>
           </div>
-          <footer className="toolbar toolbar-footer">
-            <h1 className="title">Footer</h1>
-          </footer>
+          <Footer />
         </div>
       </div>
     );
