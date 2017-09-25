@@ -2,12 +2,12 @@ import { Component } from "react";
 import { ipcRenderer } from "electron";
 import fs from "fs";
 
+import { Button, Table } from "antd";
+
 import Head from "next/head";
 import Link from "next/link";
 
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import Toolbar from "../components/Toolbar";
+import CssHeader from "../components/Header";
 
 export default class extends Component {
   state = {
@@ -37,17 +37,21 @@ export default class extends Component {
 
             let dataHeaderPack = [];
 
-            data.trim().split(/\n\r/).map(dateSet => {
-              dateSet
-                .trim()
-                .split(/\n/)
-                .map((dateLineHead, index) => {
-                  if (index == 0) {
-                    //console.log(index + " : " + dateLineHead);
-                    dataHeaderPack.push(dateLineHead);
-                  }
-                });
-            });
+            data
+              .trim()
+              .split(/\n\r/)
+              .map(dateSet => {
+                dateSet
+                  .trim()
+                  .split(/\n/)
+                  .map((dateLineHead, index) => {
+                    if (index == 0) {
+                      console.log(index + " : " + dateLineHead);
+                      dataHeaderPack.push(dateLineHead);
+                      return;
+                    }
+                  });
+              });
             this.setState({
               dataHeader: [...this.state.dataHeader, ...dataHeaderPack]
             });
@@ -82,76 +86,24 @@ export default class extends Component {
   };
 
   render() {
+    let dataSource = [];
+    let columns = [
+      {
+        title: "Data",
+        dataIndex: "data",
+        key: "data"
+      }
+    ];
+    this.state.dataHeader.map((data, index) => {
+      dataSource.push({ key: index, data: data });
+    });
     return (
       <div>
-        <Header title="Emapi Log Viewer" />
-        <div className="window">
-          <header className="toolbar toolbar-header">
-            <div className="toolbar-actions">
-              <div className="btn-group">
-                <button className="btn btn-default">
-                  <span className="icon icon-home" />
-                </button>
-                <button className="btn btn-default">
-                  <span className="icon icon-home icon-text" />
-                  Filters
-                </button>
-                <button className="btn btn-default" onClick={this.handleBrowse}>
-                  Browse...
-                </button>
-              </div>
-
-              <button className="btn btn-default btn-dropdown pull-right">
-                <span className="icon icon-megaphone" />
-              </button>
-            </div>
-          </header>
-
-          <div className="window-content">
-            <div className="pane-group">
-              <div className="pane pane-sm sidebar">
-                <nav className="nav-group">
-                  <h5 className="nav-group-title">Emapi Viewer</h5>
-                  <span className="nav-group-item active">
-                    <span className="icon icon-home" />
-                    Emapi Logs
-                  </span>
-                </nav>
-              </div>
-
-              <div className="pane">
-                <table className="table-striped">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Type</th>
-                      <th>Date</th>
-                      <th>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.dataHeader.map((data, index) => {
-                      return (
-                        <tr>
-                          <td>{index}</td>
-                          <td>{data}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="pane">
-                <div className="tab-group">
-                  <div className="tab-item active">General</div>
-                  <div className="tab-item ">Details</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <Footer />
-        </div>
+        <CssHeader title="Start Page!" />
+        <Button type="primary" onClick={this.handleBrowse}>
+          Primary
+        </Button>
+        <Table size="small" dataSource={dataSource} columns={columns} />
       </div>
     );
   }
