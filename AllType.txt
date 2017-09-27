@@ -1,0 +1,93 @@
+const allMenu = [
+  {
+    subMenu: "EmapiIndex",
+    item: ["EmapiIndexComposition", "EmapiIndexEvent"]
+  },
+  {
+    subMenu: "EmapiMarket",
+    item: [
+      "EmapiMarket",
+      "EmapiMarketByLevelEvent",
+      "EmapiMarketDepth",
+      "EmapiMarketList",
+      "EmapiMarketStatisticsEvent"
+    ]
+  },
+  {
+    subMenu: "EmapiNews",
+    item: [
+      "EmapiNewsEvent",
+      "EmapiNewsReportTypes"
+    ]
+  }
+];
+
+EmapiNewsEvent;
+EmapiNewsReportTypes;
+
+EmapiOrderBook;
+EmapiOrderBookParameters;
+EmapiOrderBookRuleGroup;
+EmapiOrderBookRuleGroupParameters;
+EmapiOrderBookStateChangeEvent;
+
+EmapiOrderCancelReq;
+EmapiOrderCancelRsp;
+EmapiOrderEventPrivate;
+EmapiOrderInsertReq;
+EmapiOrderInsertRsp;
+EmapiOrderUpdateReq;
+EmapiOrderUpdateRsp;
+
+EmapiServerGroup;
+EmapiServerProcess;
+EmapiServerProperties;
+
+EmapiTaxEndSnapshot;
+EmapiTaxHeartbeatReq;
+EmapiTaxHeartbeatRsp;
+EmapiTaxReplayEndEvent;
+EmapiTaxReplayStartEvent;
+EmapiTaxStartSnapshot;
+
+EmapiTickSizeTable;
+EmapiTickSizeTableRow;
+
+EmapiTradableInstrument;
+EmapiTradableInstrumentReference;
+
+EmapiTradeEvent;
+EmapiTradeEventPrivate;
+EmapiTradeReportTypes;
+EmapiTradeUpdateReq;
+EmapiTradeUpdateRsp;
+
+EmapiAdvertisementEvent;
+EmapiAllowedOrderTypes;
+EmapiAuctionEvent;
+EmapiCalendarDate;
+EmapiCircuitBreakerIndex;
+EmapiCurrency;
+EmapiDateCollection;
+EmapiDelayClass;
+EmapiIndustrySector;
+EmapiInstrument;
+EmapiLatestStateSequenceNumber;
+EmapiRandomizedStartParameter;
+EmapiSegment;
+EmapiStateTransition;
+EmapiSubscriptionGroup;
+EmapiTradingSchedule;
+EmapiUpdatedIndicativePriceEvent;
+EmapiWaitForSSNEvent;
+
+("");
+Group;
+ID;
+IMSS;
+IMTP;
+OrderBook;
+OrderBookId;
+Path;
+Size;
+SubscriptionGroupId;

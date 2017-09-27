@@ -12,7 +12,8 @@ import {
   Row,
   Col,
   Collapse,
-  Tabs
+  Tabs,
+  Input
 } from "antd";
 
 const TabPane = Tabs.TabPane;
@@ -27,14 +28,19 @@ import Link from "next/link";
 
 import CssHeader from "../components/Header";
 
+let messageData = [];
+
 export default class extends Component {
   state = {
     input: "",
     message: null,
     path: "",
     loading: false,
-    dataHeader: [],
-    genaralTab: ""
+    dataShow: [],
+    genaralTab: "",
+    filterDropdownVisible: false,
+    searchText: "",
+    filtered: false
   };
 
   componentDidMount() {
@@ -46,7 +52,8 @@ export default class extends Component {
       let directory = String(path);
 
       fs.readdir(directory, (err, files) => {
-        this.setState({ loading: true, dataHeader: [] });
+        messageData = [];
+        this.setState({ loading: true });
         files.forEach(filename => {
           let filepath = directory + "\\" + filename;
           //console.log(filepath);
@@ -56,10 +63,10 @@ export default class extends Component {
               return console.log(err);
             }
 
-            let dataHeaderPack = data.trim().split(/\n/);
+            let dataPack = data.trim().split(/\n/);
             let messageObject = [];
 
-            dataHeaderPack.map((singleLine, index) => {
+            dataPack.map((singleLine, index) => {
               messageObject.push({
                 date: singleLine.substring(0, 8),
                 time: singleLine.substring(9, 21),
@@ -72,9 +79,9 @@ export default class extends Component {
                   .trim()
               });
             });
-
+            messageData.push(...messageObject);
             this.setState({
-              dataHeader: [...this.state.dataHeader, ...messageObject]
+              dataShow: [...messageData]
             });
           });
         });
@@ -111,8 +118,76 @@ export default class extends Component {
     this.setState({ genaralTab: data });
   };
 
+  onInputChange = e => {
+    this.setState({ searchText: e.target.value });
+  };
+
+  onSearch = () => {
+    const { searchText } = this.state;
+    const reg = new RegExp(searchText, "gi");
+    if (searchText != "") {
+      this.setState({
+        filterDropdownVisible: false,
+        filtered: !!searchText,
+        dataShow: messageData
+          .map(record => {
+            const match = record.message.match(reg);
+            if (!match) {
+              return null;
+            }
+            return {
+              ...record,
+              message: (
+                <span>
+                  {record.message
+                    .split(reg)
+                    .map(
+                      (text, i) =>
+                        i > 0
+                          ? [
+                              <span style={{ color: "#f50" }}>{match[0]}</span>,
+                              text
+                            ]
+                          : text
+                    )}
+                </span>
+              )
+            };
+          })
+          .filter(record => !!record)
+      });
+    } else {
+      this.setState({
+        filterDropdownVisible: false,
+        filtered: !!searchText,
+        dataShow: [...messageData]
+      });
+    }
+  };
+
   render() {
     let dataSource = [];
+    const allMenu = [
+      {
+        subMenu: "EmapiIndex",
+        item: ["EmapiIndexComposition", "EmapiIndexEvent"]
+      },
+      {
+        subMenu: "EmapiMarket",
+        item: [
+          "EmapiMarket",
+          "EmapiMarketByLevelEvent",
+          "EmapiMarketDepth",
+          "EmapiMarketList",
+          "EmapiMarketStatisticsEvent"
+        ]
+      },
+      {
+        subMenu: "EmapiNews",
+        item: ["EmapiNewsEvent", "EmapiNewsReportTypes"]
+      }
+    ];
+
     const columns = [
       {
         title: "Date",
@@ -131,22 +206,68 @@ export default class extends Component {
         dataIndex: "type",
         key: "type",
         width: 200,
-        filters: [{
-          text: 'Emapi Delay Class',
-          value: 'EmapiDelayClass',
-        }, {
-          text: 'Emapi Trade Report Types',
-          value: 'EmapiTradeReportTypes',
-        }],
+        filters: [
+          {
+            text: "Emapi Delay Class",
+            value: "EmapiDelayClass"
+          },
+          {
+            text: "Emapi Trade Report Types",
+            value: "EmapiTradeReportTypes"
+          }
+        ],
         onFilter: (value, record) => record.type.includes(value)
       },
       {
         title: "Message",
         dataIndex: "message",
-        key: "message"
+        key: "message",
+        filterDropdown: (
+          <div
+            style={{
+              padding: 8,
+              borderBottomLeftRadius: 6,
+              borderBottomRightRadius: 6,
+              borderTopLeftRadius: 6,
+              borderTopRightRadius: 6,
+              boxShadow: "0 1px 6px rgba(0, 0, 0, .2)",
+              backgroundColor: "#fff"
+            }}
+          >
+            <Input
+              style={{
+                width: 130,
+                marginRight: 8
+              }}
+              ref={ele => (this.searchInput = ele)}
+              placeholder="Search message"
+              value={this.state.searchText}
+              onChange={this.onInputChange}
+              onPressEnter={this.onSearch}
+            />
+            <Button type="primary" onClick={this.onSearch}>
+              Search
+            </Button>
+          </div>
+        ),
+        filterIcon: (
+          <Icon
+            type="search"
+            style={{ color: this.state.filtered ? "#108ee9" : "#aaa" }}
+          />
+        ),
+        filterDropdownVisible: this.state.filterDropdownVisible,
+        onFilterDropdownVisibleChange: visible => {
+          this.setState(
+            {
+              filterDropdownVisible: visible
+            },
+            () => this.searchInput.focus()
+          );
+        }
       }
     ];
-    this.state.dataHeader.map((data, index) => {
+    this.state.dataShow.map((data, index) => {
       dataSource.push({
         key: index,
         date: data.date,
