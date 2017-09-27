@@ -53,8 +53,11 @@ export default class extends Component {
 
       fs.readdir(directory, (err, files) => {
         messageData = [];
+        let itemsProcessed = 0;
+
         this.setState({ loading: true });
-        files.forEach(filename => {
+
+        files.forEach((filename, index, array) => {
           let filepath = directory + "\\" + filename;
           //console.log(filepath);
 
@@ -80,12 +83,15 @@ export default class extends Component {
               });
             });
             messageData.push(...messageObject);
-            this.setState({
-              dataShow: [...messageData]
-            });
+            itemsProcessed++;
+            if (itemsProcessed === array.length) {
+              this.setState({
+                dataShow: [...messageData],
+                loading: false
+              });
+            }
           });
         });
-        this.setState({ loading: false });
       });
     });
   }
