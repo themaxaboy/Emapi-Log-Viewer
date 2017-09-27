@@ -15,71 +15,87 @@ const allMenu = [
   },
   {
     subMenu: "EmapiNews",
+    item: ["EmapiNewsEvent", "EmapiNewsReportTypes"]
+  },
+  {
+    subMenu: "EmapiOrderBook",
     item: [
-      "EmapiNewsEvent",
-      "EmapiNewsReportTypes"
+      "EmapiOrderBook",
+      "EmapiOrderBookParameters",
+      "EmapiOrderBookRuleGroup",
+      "EmapiOrderBookRuleGroupParameters",
+      "EmapiOrderBookStateChangeEvent"
+    ]
+  },
+  {
+    subMenu: "EmapiOrder",
+    item: [
+      "EmapiOrderCancelReq",
+      "EmapiOrderCancelRsp",
+      "EmapiOrderEventPrivate",
+      "EmapiOrderInsertReq",
+      "EmapiOrderInsertRsp",
+      "EmapiOrderUpdateReq",
+      "EmapiOrderUpdateRsp"
+    ]
+  },
+  {
+    subMenu: "EmapiServer",
+    item: ["EmapiServerGroup", "EmapiServerProcess", "EmapiServerProperties"]
+  },
+  {
+    subMenu: "EmapiTax",
+    item: [
+      "EmapiTaxEndSnapshot",
+      "EmapiTaxHeartbeatReq",
+      "EmapiTaxHeartbeatRsp",
+      "EmapiTaxReplayEndEvent",
+      "EmapiTaxReplayStartEvent",
+      "EmapiTaxStartSnapshot"
+    ]
+  },
+  {
+    subMenu: "EmapiTick",
+    item: ["EmapiTickSizeTable", "EmapiTickSizeTableRow"]
+  },
+  {
+    subMenu: "EmapiTradable",
+    item: ["EmapiTradableInstrument", "EmapiTradableInstrumentReference"]
+  },
+  {
+    subMenu: "EmapiTrade",
+    item: [
+      "EmapiTradeEvent",
+      "EmapiTradeEventPrivate",
+      "EmapiTradeReportTypes",
+      "EmapiTradeUpdateReq",
+      "EmapiTradeUpdateRsp"
+    ]
+  },
+  {
+    subMenu: "EmapiOther",
+    item: [
+      "EmapiAdvertisementEvent",
+      "EmapiAllowedOrderTypes",
+      "EmapiAuctionEvent",
+      "EmapiCalendarDate",
+      "EmapiCircuitBreakerIndex",
+      "EmapiCurrency",
+      "EmapiDateCollection",
+      "EmapiDelayClass",
+      "EmapiIndustrySector",
+      "EmapiInstrument",
+      "EmapiLatestStateSequenceNumber",
+      "EmapiRandomizedStartParameter",
+      "EmapiSegment",
+      "EmapiStateTransition",
+      "EmapiSubscriptionGroup",
+      "EmapiTradingSchedule",
+      "EmapiUpdatedIndicativePriceEvent",
+      "EmapiWaitForSSNEvent"
     ]
   }
 ];
-
-EmapiNewsEvent;
-EmapiNewsReportTypes;
-
-EmapiOrderBook;
-EmapiOrderBookParameters;
-EmapiOrderBookRuleGroup;
-EmapiOrderBookRuleGroupParameters;
-EmapiOrderBookStateChangeEvent;
-
-EmapiOrderCancelReq;
-EmapiOrderCancelRsp;
-EmapiOrderEventPrivate;
-EmapiOrderInsertReq;
-EmapiOrderInsertRsp;
-EmapiOrderUpdateReq;
-EmapiOrderUpdateRsp;
-
-EmapiServerGroup;
-EmapiServerProcess;
-EmapiServerProperties;
-
-EmapiTaxEndSnapshot;
-EmapiTaxHeartbeatReq;
-EmapiTaxHeartbeatRsp;
-EmapiTaxReplayEndEvent;
-EmapiTaxReplayStartEvent;
-EmapiTaxStartSnapshot;
-
-EmapiTickSizeTable;
-EmapiTickSizeTableRow;
-
-EmapiTradableInstrument;
-EmapiTradableInstrumentReference;
-
-EmapiTradeEvent;
-EmapiTradeEventPrivate;
-EmapiTradeReportTypes;
-EmapiTradeUpdateReq;
-EmapiTradeUpdateRsp;
-
-EmapiAdvertisementEvent;
-EmapiAllowedOrderTypes;
-EmapiAuctionEvent;
-EmapiCalendarDate;
-EmapiCircuitBreakerIndex;
-EmapiCurrency;
-EmapiDateCollection;
-EmapiDelayClass;
-EmapiIndustrySector;
-EmapiInstrument;
-EmapiLatestStateSequenceNumber;
-EmapiRandomizedStartParameter;
-EmapiSegment;
-EmapiStateTransition;
-EmapiSubscriptionGroup;
-EmapiTradingSchedule;
-EmapiUpdatedIndicativePriceEvent;
-EmapiWaitForSSNEvent;
 
 ("");
 Group;

@@ -29,17 +29,20 @@ import Link from "next/link";
 import CssHeader from "../components/Header";
 
 let messageData = [];
+let searchText = "";
 
 export default class extends Component {
   state = {
     input: "",
     message: null,
     path: "",
+
     loading: false,
     dataShow: [],
     genaralTab: "",
+    detailsTab: "",
+
     filterDropdownVisible: false,
-    searchText: "",
     filtered: false
   };
 
@@ -121,15 +124,15 @@ export default class extends Component {
   };
 
   handleRowClick = data => {
-    this.setState({ genaralTab: data });
+    this.setState({ genaralTab: data, detailsTab: data });
   };
 
   onInputChange = e => {
-    this.setState({ searchText: e.target.value });
+    searchText = e.target.value;
   };
 
   onSearch = () => {
-    const { searchText } = this.state;
+    //const { searchText } = this.state;
     const reg = new RegExp(searchText, "gi");
     if (searchText != "") {
       this.setState({
@@ -191,6 +194,88 @@ export default class extends Component {
       {
         subMenu: "EmapiNews",
         item: ["EmapiNewsEvent", "EmapiNewsReportTypes"]
+      },
+      {
+        subMenu: "EmapiOrderBook",
+        item: [
+          "EmapiOrderBook",
+          "EmapiOrderBookParameters",
+          "EmapiOrderBookRuleGroup",
+          "EmapiOrderBookRuleGroupParameters",
+          "EmapiOrderBookStateChangeEvent"
+        ]
+      },
+      {
+        subMenu: "EmapiOrder",
+        item: [
+          "EmapiOrderCancelReq",
+          "EmapiOrderCancelRsp",
+          "EmapiOrderEventPrivate",
+          "EmapiOrderInsertReq",
+          "EmapiOrderInsertRsp",
+          "EmapiOrderUpdateReq",
+          "EmapiOrderUpdateRsp"
+        ]
+      },
+      {
+        subMenu: "EmapiServer",
+        item: [
+          "EmapiServerGroup",
+          "EmapiServerProcess",
+          "EmapiServerProperties"
+        ]
+      },
+      {
+        subMenu: "EmapiTax",
+        item: [
+          "EmapiTaxEndSnapshot",
+          "EmapiTaxHeartbeatReq",
+          "EmapiTaxHeartbeatRsp",
+          "EmapiTaxReplayEndEvent",
+          "EmapiTaxReplayStartEvent",
+          "EmapiTaxStartSnapshot"
+        ]
+      },
+      {
+        subMenu: "EmapiTick",
+        item: ["EmapiTickSizeTable", "EmapiTickSizeTableRow"]
+      },
+      {
+        subMenu: "EmapiTradable",
+        item: ["EmapiTradableInstrument", "EmapiTradableInstrumentReference"]
+      },
+      {
+        subMenu: "EmapiTrade",
+        item: [
+          "EmapiTradeEvent",
+          "EmapiTradeEventPrivate",
+          "EmapiTradeReportTypes",
+          "EmapiTradeUpdateReq",
+          "EmapiTradeUpdateRsp"
+        ]
+      },
+      {
+        subMenu: "EmapiOther",
+        item: [
+          "EmapiAdvertisementEvent",
+          "EmapiAllowedOrderTypes",
+          "EmapiAuctionEvent",
+          "EmapiCalendarDate",
+          "EmapiCircuitBreakerIndex",
+          "EmapiCurrency",
+          "EmapiDateCollection",
+          "EmapiDelayClass",
+          "EmapiIndustrySector",
+          "EmapiInstrument",
+          "EmapiLatestStateSequenceNumber",
+          "EmapiRandomizedStartParameter",
+          "EmapiSegment",
+          "EmapiStateTransition",
+          "EmapiSubscriptionGroup",
+          "EmapiTradingSchedule",
+          "EmapiUpdatedIndicativePriceEvent",
+          "EmapiWaitForSSNEvent"
+        ]
       }
     ];
 
@@ -214,12 +299,12 @@ export default class extends Component {
         width: 200,
         filters: [
           {
-            text: "Emapi Delay Class",
-            value: "EmapiDelayClass"
+            text: "Emapi Market By Level Event",
+            value: "EmapiMarketByLevelEvent"
           },
           {
-            text: "Emapi Trade Report Types",
-            value: "EmapiTradeReportTypes"
+            text: "Emapi Auction Event",
+            value: "EmapiAuctionEvent"
           }
         ],
         onFilter: (value, record) => record.type.includes(value)
@@ -247,7 +332,7 @@ export default class extends Component {
               }}
               ref={ele => (this.searchInput = ele)}
               placeholder="Search message"
-              value={this.state.searchText}
+              /*value={searchText}*/
               onChange={this.onInputChange}
               onPressEnter={this.onSearch}
             />
@@ -312,22 +397,26 @@ export default class extends Component {
                   defaultOpenKeys={["sub1"]}
                   style={{ height: "100%", borderRight: 0 }}
                 >
-                  <SubMenu
-                    key="sub1"
-                    title={
-                      <span>
-                        <Icon type="user" />Emapi Logs
-                      </span>
-                    }
-                  >
-                    <Menu.Item key="1">Emapi TaxStart Snapshot</Menu.Item>
-                    <Menu.Item key="2">Emapi Trade Report Types</Menu.Item>
-                    <Menu.Item key="3">Emapi Allowed Order Types</Menu.Item>
-                    <Menu.Item key="4">Emapi Instrument</Menu.Item>
-                  </SubMenu>
+                  {allMenu.map((data, key) => {
+                    let itemKey = 1;
+                    return (
+                      <SubMenu
+                        key={"sub" + (key + 1)}
+                        title={
+                          <span>
+                            <Icon type="user" />
+                            {data.subMenu}
+                          </span>
+                        }
+                      >
+                        {data.item.map(item => {
+                          return <Menu.Item key={itemKey++}>{item}</Menu.Item>;
+                        })}
+                      </SubMenu>
+                    );
+                  })}
                 </Menu>
               </Sider>
-
               <Content
                 style={{
                   maxHeight: "90vh",
@@ -359,7 +448,7 @@ export default class extends Component {
                       {this.state.genaralTab}
                     </TabPane>
                     <TabPane tab="Details" key="2">
-                      Content of Tab Pane 2
+                      {this.state.detailsTab}
                     </TabPane>
                   </Tabs>
                 </Row>
