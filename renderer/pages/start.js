@@ -38,12 +38,13 @@ export default class extends Component {
     path: "",
 
     loading: false,
+    searching: false,
     dataShow: [],
     genaralTab: "",
     detailsTab: "",
 
-    filterDropdownVisible: false,
-    filtered: false
+    searchDropdownVisible: false,
+    searched: false
   };
 
   componentDidMount() {
@@ -57,10 +58,9 @@ export default class extends Component {
       fs.readdir(directory, (err, files) => {
         messageData = [];
         let itemsProcessed = 0;
-
         this.setState({ loading: true });
 
-        files.forEach((filename, index, array) => {
+        files.map((filename, index, array) => {
           let filepath = directory + "\\" + filename;
           //console.log(filepath);
 
@@ -134,10 +134,10 @@ export default class extends Component {
   onSearch = () => {
     //const { searchText } = this.state;
     const reg = new RegExp(searchText, "gi");
-    if (searchText != "") {
+    if (searchText != "" && searchText.length > 2) {
       this.setState({
-        filterDropdownVisible: false,
-        filtered: !!searchText,
+        searchDropdownVisible: false,
+        searched: !!searchText,
         dataShow: messageData
           .map(record => {
             const match = record.message.match(reg);
@@ -167,8 +167,8 @@ export default class extends Component {
       });
     } else {
       this.setState({
-        filterDropdownVisible: false,
-        filtered: !!searchText,
+        searchDropdownVisible: false,
+        searched: !!searchText,
         dataShow: [...messageData]
       });
     }
@@ -176,108 +176,6 @@ export default class extends Component {
 
   render() {
     let dataSource = [];
-    const allMenu = [
-      {
-        subMenu: "EmapiIndex",
-        item: ["EmapiIndexComposition", "EmapiIndexEvent"]
-      },
-      {
-        subMenu: "EmapiMarket",
-        item: [
-          "EmapiMarket",
-          "EmapiMarketByLevelEvent",
-          "EmapiMarketDepth",
-          "EmapiMarketList",
-          "EmapiMarketStatisticsEvent"
-        ]
-      },
-      {
-        subMenu: "EmapiNews",
-        item: ["EmapiNewsEvent", "EmapiNewsReportTypes"]
-      },
-      {
-        subMenu: "EmapiOrderBook",
-        item: [
-          "EmapiOrderBook",
-          "EmapiOrderBookParameters",
-          "EmapiOrderBookRuleGroup",
-          "EmapiOrderBookRuleGroupParameters",
-          "EmapiOrderBookStateChangeEvent"
-        ]
-      },
-      {
-        subMenu: "EmapiOrder",
-        item: [
-          "EmapiOrderCancelReq",
-          "EmapiOrderCancelRsp",
-          "EmapiOrderEventPrivate",
-          "EmapiOrderInsertReq",
-          "EmapiOrderInsertRsp",
-          "EmapiOrderUpdateReq",
-          "EmapiOrderUpdateRsp"
-        ]
-      },
-      {
-        subMenu: "EmapiServer",
-        item: [
-          "EmapiServerGroup",
-          "EmapiServerProcess",
-          "EmapiServerProperties"
-        ]
-      },
-      {
-        subMenu: "EmapiTax",
-        item: [
-          "EmapiTaxEndSnapshot",
-          "EmapiTaxHeartbeatReq",
-          "EmapiTaxHeartbeatRsp",
-          "EmapiTaxReplayEndEvent",
-          "EmapiTaxReplayStartEvent",
-          "EmapiTaxStartSnapshot"
-        ]
-      },
-      {
-        subMenu: "EmapiTick",
-        item: ["EmapiTickSizeTable", "EmapiTickSizeTableRow"]
-      },
-      {
-        subMenu: "EmapiTradable",
-        item: ["EmapiTradableInstrument", "EmapiTradableInstrumentReference"]
-      },
-      {
-        subMenu: "EmapiTrade",
-        item: [
-          "EmapiTradeEvent",
-          "EmapiTradeEventPrivate",
-          "EmapiTradeReportTypes",
-          "EmapiTradeUpdateReq",
-          "EmapiTradeUpdateRsp"
-        ]
-      },
-      {
-        subMenu: "EmapiOther",
-        item: [
-          "EmapiAdvertisementEvent",
-          "EmapiAllowedOrderTypes",
-          "EmapiAuctionEvent",
-          "EmapiCalendarDate",
-          "EmapiCircuitBreakerIndex",
-          "EmapiCurrency",
-          "EmapiDateCollection",
-          "EmapiDelayClass",
-          "EmapiIndustrySector",
-          "EmapiInstrument",
-          "EmapiLatestStateSequenceNumber",
-          "EmapiRandomizedStartParameter",
-          "EmapiSegment",
-          "EmapiStateTransition",
-          "EmapiSubscriptionGroup",
-          "EmapiTradingSchedule",
-          "EmapiUpdatedIndicativePriceEvent",
-          "EmapiWaitForSSNEvent"
-        ]
-      }
-    ];
 
     const columns = [
       {
@@ -299,8 +197,8 @@ export default class extends Component {
         width: 200,
         filters: [
           {
-            text: "Emapi Market By Level Event",
-            value: "EmapiMarketByLevelEvent"
+            text: "Index Composition",
+            value: "EmapiIndexComposition"
           },
           {
             text: "Emapi Auction Event",
@@ -336,23 +234,24 @@ export default class extends Component {
               onChange={this.onInputChange}
               onPressEnter={this.onSearch}
             />
-            <Button type="primary" onClick={this.onSearch}>
-              Search
-            </Button>
+            <Button
+              loading={this.state.searching}
+              icon="search"
+              shape="circle"
+              type="primary"
+              onClick={this.onSearch}
+            />
           </div>
         ),
         filterIcon: (
           <Icon
             type="search"
-            style={{ color: this.state.filtered ? "#108ee9" : "#aaa" }}
+            style={{ color: this.state.searched ? "#108ee9" : "#aaa" }}
           />
         ),
-        filterDropdownVisible: this.state.filterDropdownVisible,
-        onFilterDropdownVisibleChange: visible => {
-          this.setState(
-            {
-              filterDropdownVisible: visible
-            },
+        searchDropdownVisible: this.state.searchDropdownVisible,
+        onsearchDropdownVisibleChange: visible => {
+          this.setState({searchDropdownVisible: visible },
             () => this.searchInput.focus()
           );
         }
@@ -374,47 +273,218 @@ export default class extends Component {
           <Layout
             style={{
               maxHeight: "100vh",
-              backgroundColor: "#f0f0f0",
-              padding: 0
+              backgroundColor: "#f0f0f0"
             }}
           >
-            <Header
+            <Layout
+              className="header"
               style={{
-                height: "5vh",
-                backgroundColor: "#f0f0f0",
-                padding: 0,
-                alignSelf: "center"
+                backgroundColor: "#ffffff",
+                height: "4.5vh",
+                marginBottom: "0.5vh"
               }}
             >
-              Header
-            </Header>
+              Toolbar
+            </Layout>
 
             <Layout>
-              <Sider style={{ backgroundColor: "#ffffff", padding: 0 }}>
+              <Sider
+                style={{
+                  backgroundColor: "#ffffff",
+                  padding: 0,
+                  overflow: "auto"
+                }}
+              >
                 <Menu
                   mode="inline"
                   defaultSelectedKeys={["1"]}
                   defaultOpenKeys={["sub1"]}
                   style={{ height: "100%", borderRight: 0 }}
+                  multiple={false}
                 >
-                  {allMenu.map((data, key) => {
-                    let itemKey = 1;
-                    return (
-                      <SubMenu
-                        key={"sub" + (key + 1)}
-                        title={
-                          <span>
-                            <Icon type="user" />
-                            {data.subMenu}
-                          </span>
-                        }
-                      >
-                        {data.item.map(item => {
-                          return <Menu.Item key={itemKey++}>{item}</Menu.Item>;
-                        })}
-                      </SubMenu>
-                    );
-                  })}
+                  <SubMenu
+                    key={"sub1"}
+                    title={
+                      <span>
+                        <Icon type="line-chart" />
+                        Emapi Index
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="1">Index Composition</Menu.Item>
+                    <Menu.Item key="2">Index Event</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub2"}
+                    title={
+                      <span>
+                        <Icon type="home" />
+                        Emapi Market
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="3">Market</Menu.Item>
+                    <Menu.Item key="4">Market By Level Event</Menu.Item>
+                    <Menu.Item key="5">Market Depth</Menu.Item>
+                    <Menu.Item key="6">Market List</Menu.Item>
+                    <Menu.Item key="7">Market Statistics Event</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub3"}
+                    title={
+                      <span>
+                        <Icon type="notification" />
+                        Emapi News
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="8">News Event</Menu.Item>
+                    <Menu.Item key="9">News Report Types</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub4"}
+                    title={
+                      <span>
+                        <Icon type="database" />
+                        Emapi OrderBook
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="10">Order Book</Menu.Item>
+                    <Menu.Item key="11">Order Book Parameters</Menu.Item>
+                    <Menu.Item key="12">Order Book Rule Group</Menu.Item>
+                    <Menu.Item key="13">
+                      Order Book Rule Group Parameters
+                    </Menu.Item>
+                    <Menu.Item key="14">
+                      Order Book State Change Event
+                    </Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub5"}
+                    title={
+                      <span>
+                        <Icon type="solution" />
+                        Emapi Order
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="15">Order Cancel Req</Menu.Item>
+                    <Menu.Item key="16">Order Cancel Rsp</Menu.Item>
+                    <Menu.Item key="17">Order Event Private</Menu.Item>
+                    <Menu.Item key="18">Order Insert Req</Menu.Item>
+                    <Menu.Item key="19">Order Insert Rsp</Menu.Item>
+                    <Menu.Item key="20">Order Update Req</Menu.Item>
+                    <Menu.Item key="21">Order Update Rsp</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub6"}
+                    title={
+                      <span>
+                        <Icon type="desktop" />
+                        Emapi Server
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="22">Server Group</Menu.Item>
+                    <Menu.Item key="23">Server Process</Menu.Item>
+                    <Menu.Item key="24">Server Properties</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub7"}
+                    title={
+                      <span>
+                        <Icon type="pay-circle-o" />
+                        Emapi Tax
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="25">Tax End Snapshot</Menu.Item>
+                    <Menu.Item key="26">Tax Heartbeat Req</Menu.Item>
+                    <Menu.Item key="27">Tax Heartbeat Rsp</Menu.Item>
+                    <Menu.Item key="28">Tax Replay End Event</Menu.Item>
+                    <Menu.Item key="29">Tax Replay Start Event</Menu.Item>
+                    <Menu.Item key="30">Tax Start Snapshot</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub8"}
+                    title={
+                      <span>
+                        <Icon type="bars" />
+                        Emapi Tick
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="31">EmapiTickSizeTable</Menu.Item>
+                    <Menu.Item key="32">EmapiTickSizeTableRow</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub9"}
+                    title={
+                      <span>
+                        <Icon type="camera-o" />
+                        Emapi Tradable
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="33">EmapiTradableInstrument</Menu.Item>
+                    <Menu.Item key="34">
+                      EmapiTradableInstrumentReference
+                    </Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub10"}
+                    title={
+                      <span>
+                        <Icon type="switcher" />
+                        Emapi Trade
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="35">EmapiTradeEvent</Menu.Item>
+                    <Menu.Item key="36">EmapiTradeEventPrivate</Menu.Item>
+                    <Menu.Item key="37">EmapiTradeReportTypes</Menu.Item>
+                    <Menu.Item key="38">EmapiTradeUpdateReq</Menu.Item>
+                    <Menu.Item key="39">EmapiTradeUpdateRsp</Menu.Item>
+                  </SubMenu>
+
+                  <SubMenu
+                    key={"sub11"}
+                    title={
+                      <span>
+                        <Icon type="api" />
+                        Emapi Other
+                      </span>
+                    }
+                  >
+                    <Menu.Item key="40">AdvertisementEvent</Menu.Item>
+                    <Menu.Item key="41">AllowedOrderTypes</Menu.Item>
+                    <Menu.Item key="42">AuctionEvent</Menu.Item>
+                    <Menu.Item key="43">CalendarDate</Menu.Item>
+                    <Menu.Item key="44">CircuitBreakerIndex</Menu.Item>
+                    <Menu.Item key="45">Currency</Menu.Item>
+                    <Menu.Item key="46">DateCollection</Menu.Item>
+                    <Menu.Item key="47">DelayClass</Menu.Item>
+                    <Menu.Item key="48">IndustrySector</Menu.Item>
+                    <Menu.Item key="49">Instrument</Menu.Item>
+                    <Menu.Item key="50">LatestStateSequenceNumber</Menu.Item>
+                    <Menu.Item key="51">RandomizedStartParameter</Menu.Item>
+                    <Menu.Item key="52">Segment</Menu.Item>
+                    <Menu.Item key="53">StateTransition</Menu.Item>
+                    <Menu.Item key="54">SubscriptionGroup</Menu.Item>
+                    <Menu.Item key="55">TradingSchedule</Menu.Item>
+                    <Menu.Item key="56">UpdatedIndicativePriceEvent</Menu.Item>
+                    <Menu.Item key="57">WaitForSSNEvent</Menu.Item>
+                  </SubMenu>
                 </Menu>
               </Sider>
               <Content
