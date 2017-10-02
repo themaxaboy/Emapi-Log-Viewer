@@ -51,6 +51,10 @@ export default class extends Component {
     // start listening the channel message
     ipcRenderer.on("message", this.handleMessage);
 
+    ipcRenderer.on("database-query", (event, row) => {
+      console.log(row.id + ": " + row.info);
+    });
+
     ipcRenderer.on("selected-directory", (event, path) => {
       //console.log(path);
       let directory = String(path);
@@ -121,6 +125,10 @@ export default class extends Component {
 
   handleBrowse = event => {
     ipcRenderer.send("open-file-dialog");
+  };
+
+  handleRefresh = event => {
+    ipcRenderer.send("database-insert");
   };
 
   handleRowClick = data => {
@@ -251,8 +259,8 @@ export default class extends Component {
         ),
         searchDropdownVisible: this.state.searchDropdownVisible,
         onsearchDropdownVisibleChange: visible => {
-          this.setState({searchDropdownVisible: visible },
-            () => this.searchInput.focus()
+          this.setState({ searchDropdownVisible: visible }, () =>
+            this.searchInput.focus()
           );
         }
       }
@@ -533,7 +541,7 @@ export default class extends Component {
                       </a>
                     </p>
                     <p>
-                      <a onClick={this.handleBrowse}>
+                      <a onClick={this.handleRefresh}>
                         <Icon type="link" /> Export Logs...
                       </a>
                     </p>
