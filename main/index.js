@@ -7,6 +7,8 @@ const { BrowserWindow, app, ipcMain,dialog  } = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
 
+const sqlite3 = require('sqlite3').verbose();
+
 // Prepare the renderer once the app is ready
 app.on('ready', async () => {
   await prepareNext('./renderer')
