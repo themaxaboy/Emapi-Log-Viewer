@@ -13,7 +13,8 @@ import {
   Col,
   Collapse,
   Tabs,
-  Input
+  Input,
+  Progress 
 } from "antd";
 
 const TabPane = Tabs.TabPane;
@@ -38,6 +39,7 @@ export default class extends Component {
     path: "",
 
     loading: false,
+    progress: 0,
     searching: false,
     dataShow: [],
     genaralTab: "",
@@ -51,61 +53,20 @@ export default class extends Component {
     // start listening the channel message
     ipcRenderer.on("message", this.handleMessage);
 
-    ipcRenderer.on("database-query", (event, row) => {
-      console.log(row.id + ": " + row.info);
-    });
-
     ipcRenderer.on("selected-directory", (event, path) => {
-      //console.log(path);
-      let directory = String(path);
-
-      fs.readdir(directory, (err, files) => {
-        messageData = [];
-        let itemsProcessed = 0;
-        this.setState({ loading: true });
-
-        files.map((filename, index, array) => {
-          let filepath = directory + "\\" + filename;
-          //console.log(filepath);
-
-          fs.readFile(filepath, "utf8", (err, data) => {
-            if (err) {
-              return console.log(err);
-            }
-
-            let dataPack = data.trim().split(/\n/);
-            let messageObject = [];
-
-            dataPack.map((singleLine, index) => {
-              messageObject.push({
-                date: singleLine.substring(0, 8),
-                time: singleLine.substring(9, 21),
-                type: singleLine.substring(
-                  singleLine.indexOf("[") + 1,
-                  singleLine.indexOf("]")
-                ),
-                message: singleLine
-                  .substring(singleLine.indexOf("]") + 1)
-                  .trim()
-              });
-            });
-            messageData.push(...messageObject);
-            itemsProcessed++;
-            if (itemsProcessed === array.length) {
-              this.setState({
-                dataShow: [...messageData],
-                loading: false
-              });
-            }
-          });
-        });
-      });
+      this.setState({ loading: true });
     });
+
+    ipcRenderer.on("progress", (event, progress) => {
+      this.setState({ progress: progress });
+    });
+
   }
 
   componentWillUnmount() {
     // stop listening the channel message
     ipcRenderer.removeListener("message", this.handleMessage);
+    ipcRenderer.removeListener("progress");
   }
 
   handleMessage = (event, message) => {
@@ -125,10 +86,6 @@ export default class extends Component {
 
   handleBrowse = event => {
     ipcRenderer.send("open-file-dialog");
-  };
-
-  handleRefresh = event => {
-    ipcRenderer.send("database-insert");
   };
 
   handleRowClick = data => {
@@ -292,7 +249,7 @@ export default class extends Component {
                 marginBottom: "0.5vh"
               }}
             >
-              Toolbar
+              <Progress percent={this.state.progress} status="active" />
             </Layout>
 
             <Layout>
@@ -541,7 +498,7 @@ export default class extends Component {
                       </a>
                     </p>
                     <p>
-                      <a onClick={this.handleRefresh}>
+                      <a>
                         <Icon type="link" /> Export Logs...
                       </a>
                     </p>

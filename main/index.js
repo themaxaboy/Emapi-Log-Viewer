@@ -10,13 +10,16 @@ const fs = require("fs");
 
 // Database Sqlite3
 const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("EmapiMessage.db");
+const db = new sqlite3.cached.Database("EmapiMessage.db");
 
 // Prepare the renderer once the app is ready
 app.on("ready", async () => {
   await prepareNext("./renderer");
 
   const mainWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegrationInWorker: true
+    },
     width: 1024,
     height: 768
   });
@@ -34,7 +37,6 @@ app.on("ready", async () => {
 
 // Quit the app once all windows are closed
 app.on("window-all-closed", () => {
-  db.close();
   app.quit;
 });
 
@@ -50,35 +52,24 @@ ipcMain.on("open-file-dialog", function(event) {
     },
     function(files) {
       if (files) {
-        //event.sender.send("selected-directory", files);
-        readFileToDatebase(files);
+        event.sender.send("selected-directory", files);
+        readFileToDatebase(event, files);
       }
     }
   );
 });
 
-ipcMain.on("database-insert", function(event) {
-  db.serialize(function() {
-    db.run("DROP TABLE emapi");
-    db.run("CREATE TABLE emapi (msg TEXT)");
-
-    var stmt = db.prepare("INSERT INTO emapi VALUES (?)");
-    for (var i = 0; i < 10; i++) {
-      stmt.run("Ipsum " + i);
-    }
-    stmt.finalize();
-
-    db.each("SELECT rowid AS id, msg FROM emapi", function(err, row) {
-      console.log(row.id + ": " + row.msg);
-      event.sender.send("database-query", row);
-    });
-  });
-
-  db.close();
-});
-
-let readFileToDatebase = path => {
+let readFileToDatebase = (event, path) => {
   let directory = String(path);
+  db.serialize(() => {
+    db.run("PRAGMA synchronous = OFF");
+    db.run("PRAGMA journal_mode = WAL");
+
+    db.run("begin transaction");
+    db.run("DROP TABLE emapi");
+    db.run("CREATE TABLE emapi (time,type,message)");
+    db.run("commit");
+  });
 
   fs.readdir(directory, (err, files) => {
     messageData = [];
@@ -88,46 +79,58 @@ let readFileToDatebase = path => {
       let filepath = directory + "\\" + filename;
 
       fs.readFile(filepath, "utf8", (err, data) => {
-        if (err) {
-          return console.log(err);
-        }
-
         let dataPack = data.trim().split(/\n/);
         let messageObject = [];
 
         dataPack.map((singleLine, index) => {
           messageObject.push({
-            date: singleLine.substring(0, 8),
+            //date: singleLine.substring(0, 8),
             time: singleLine.substring(9, 21),
             type: singleLine.substring(
               singleLine.indexOf("[") + 1,
               singleLine.indexOf("]")
             ),
-            message: singleLine.substring(singleLine.indexOf("]") + 1).trim()
+            message: singleLine.trim()
           });
         });
-        messageData = messageData.concat(messageObject);
+
+        messageData.push(...messageObject);
         itemsProcessed++;
-        console.log(itemsProcessed);
+        console.log(parseInt(itemsProcessed / array.length * 100) + "%");
+
         if (itemsProcessed === array.length) {
-          //Save to data base
-          db.serialize(function() {
-            db.run("CREATE TABLE emapi (msg TEXT)");
+          console.log("Read Finish.");
+          let timeToInsert = new Date().getTime();
+          const stmt = db.prepare("INSERT INTO emapi VALUES (?,?,?)");
+
+          db.serialize(() => {
             db.run("begin transaction");
 
-            const stmt = db.prepare("INSERT INTO emapi VALUES (?)");
+            messageData.map((data, index, array) => {
+              stmt.run(data.time, data.type, data.message);
 
-            messageData.map(data => {
-              stmt.run(data.message);
-              messageData.splice(0, 1);
+              if (index % 1000 == 0 && index != 0) {
+                db.run("commit");
+                console.log(parseInt(index / array.length * 100) + "%");
+                event.sender.send(
+                  "progress",
+                  parseInt(index / array.length * 100)
+                );
+                messageData.splice(0, 1000);
+                db.run("begin transaction");
+              } else if (index == array.length - 1) {
+                db.run("commit");
+                console.log("100%");
+                event.sender.send("progress", 100);
+                messageData = [];
+              }
             });
-            db.run("commit");
-
-            stmt.finalize();
           });
-          messageData = [];
-          db.close();
-          console.log("Finish.");
+          console.log(
+            "Insert Finish in : " +
+              (new Date().getTime() - timeToInsert) / 1000 +
+              "Sec."
+          );
         }
       });
     });

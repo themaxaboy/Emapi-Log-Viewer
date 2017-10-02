@@ -12,3 +12,5 @@ npm-debug.log
 *.lock
 *.log
 *.db
+*.db-shm
+*.db-wal
