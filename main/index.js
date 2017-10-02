@@ -45,12 +45,12 @@ ipcMain.on("message", (event, message) => {
   event.sender.send("message", message);
 });
 
-ipcMain.on("open-file-dialog", function(event) {
+ipcMain.on("open-file-dialog", event => {
   dialog.showOpenDialog(
     {
       properties: ["openFile", "openDirectory"]
     },
-    function(files) {
+    files => {
       if (files) {
         event.sender.send("selected-directory", files);
         readFileToDatebase(event, files);

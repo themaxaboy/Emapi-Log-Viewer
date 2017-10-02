@@ -14,7 +14,8 @@ import {
   Collapse,
   Tabs,
   Input,
-  Progress 
+  Progress,
+  Spin
 } from "antd";
 
 const TabPane = Tabs.TabPane;
@@ -36,7 +37,6 @@ export default class extends Component {
   state = {
     input: "",
     message: null,
-    path: "",
 
     loading: false,
     progress: 0,
@@ -54,24 +54,25 @@ export default class extends Component {
     ipcRenderer.on("message", this.handleMessage);
 
     ipcRenderer.on("selected-directory", (event, path) => {
-      this.setState({ loading: true });
+      this.setState({ loading: false });
     });
 
-    ipcRenderer.on("progress", (event, progress) => {
-      this.setState({ progress: progress });
-    });
-
+    ipcRenderer.on("progress", this.handleProgress);
   }
 
   componentWillUnmount() {
     // stop listening the channel message
     ipcRenderer.removeListener("message", this.handleMessage);
-    ipcRenderer.removeListener("progress");
+    ipcRenderer.removeListener("progress", this.handleProgress);
   }
 
   handleMessage = (event, message) => {
     // receive a message from the main process and save it in the local state
     this.setState({ message });
+  };
+
+  handleProgress = (event, progress) => {
+    this.setState({ progress });
   };
 
   handleChange = event => {
@@ -86,6 +87,7 @@ export default class extends Component {
 
   handleBrowse = event => {
     ipcRenderer.send("open-file-dialog");
+    this.setState({ loading: true });
   };
 
   handleRowClick = data => {
@@ -234,6 +236,7 @@ export default class extends Component {
     return (
       <LocaleProvider locale={enUS}>
         <div>
+          <Spin tip="Loading..." size="large" spinning={this.state.loading}>
           <CssHeader title="Start Page!" />
           <Layout
             style={{
@@ -249,7 +252,7 @@ export default class extends Component {
                 marginBottom: "0.5vh"
               }}
             >
-              <Progress percent={this.state.progress} status="active" />
+              <Progress percent={this.state.progress} status="active" showInfo={false}/>
             </Layout>
 
             <Layout>
@@ -469,7 +472,7 @@ export default class extends Component {
                     columns={columns}
                     scroll={{ y: "27vh" }}
                     pagination={{ showQuickJumper: true, pageSize: 50 }}
-                    loading={this.state.loading}
+                    /*loading={this.state.loading}*/
                     onRowClick={record => this.handleRowClick(record.message)}
                   />
                 </Row>
@@ -531,6 +534,7 @@ export default class extends Component {
               Footer
             </Footer>
           </Layout>
+          </Spin>
         </div>
       </LocaleProvider>
     );
