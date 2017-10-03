@@ -17,9 +17,6 @@ app.on("ready", async () => {
   await prepareNext("./renderer");
 
   const mainWindow = new BrowserWindow({
-    webPreferences: {
-      nodeIntegrationInWorker: true
-    },
     width: 1024,
     height: 768
   });
@@ -40,11 +37,6 @@ app.on("window-all-closed", () => {
   app.quit;
 });
 
-// listen the channel `message` and resend the received message to the renderer process
-ipcMain.on("message", (event, message) => {
-  event.sender.send("message", message);
-});
-
 ipcMain.on("open-file-dialog", event => {
   dialog.showOpenDialog(
     {
@@ -52,8 +44,8 @@ ipcMain.on("open-file-dialog", event => {
     },
     files => {
       if (files) {
-        event.sender.send("selected-directory", files);
         readFileToDatebase(event, files);
+        event.sender.send("selected-directory", files);
       }
     }
   );
@@ -67,7 +59,7 @@ let readFileToDatebase = (event, path) => {
 
     db.run("begin transaction");
     db.run("DROP TABLE emapi");
-    db.run("CREATE TABLE emapi (time,type,message)");
+    db.run("CREATE TABLE emapi (date,time,type,message)");
     db.run("commit");
   });
 
@@ -84,7 +76,7 @@ let readFileToDatebase = (event, path) => {
 
         dataPack.map((singleLine, index) => {
           messageObject.push({
-            //date: singleLine.substring(0, 8),
+            date: singleLine.substring(0, 8),
             time: singleLine.substring(9, 21),
             type: singleLine.substring(
               singleLine.indexOf("[") + 1,
@@ -101,13 +93,13 @@ let readFileToDatebase = (event, path) => {
         if (itemsProcessed === array.length) {
           console.log("Read Finish.");
           let timeToInsert = new Date().getTime();
-          const stmt = db.prepare("INSERT INTO emapi VALUES (?,?,?)");
+          const stmt = db.prepare("INSERT INTO emapi VALUES (?,?,?,?)");
 
           db.serialize(() => {
             db.run("begin transaction");
 
             messageData.map((data, index, array) => {
-              stmt.run(data.time, data.type, data.message);
+              stmt.run(data.date, data.time, data.type, data.message);
 
               if (index % 1000 == 0 && index != 0) {
                 db.run("commit");
@@ -136,3 +128,37 @@ let readFileToDatebase = (event, path) => {
     });
   });
 };
+
+let queryDatabase = (type = "") => {
+  return new Promise((resolve, reject) => {
+    let queryData = [];
+    let sql = "SELECT * FROM emapi WHERE type = ?";
+
+    if (type == "") {
+      sql = "SELECT * FROM emapi";
+    }
+
+    db.each(
+      sql,
+      [type],
+      (err, row) => {
+        if (err) {
+          reject(err);
+        }
+        queryData.push(row);
+      },
+      (err, found) => {
+        resolve(queryData);
+      }
+    );
+  });
+};
+
+// listen the channel `message` and resend the received message to the renderer process
+ipcMain.on("message", (event, message) => {
+  event.sender.send("message", message);
+});
+
+ipcMain.on("query-database", async (event, type) => {
+  event.sender.send("executed-database", await queryDatabase(type));
+});
