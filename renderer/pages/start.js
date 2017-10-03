@@ -31,12 +31,12 @@ import Link from "next/link";
 import CssHeader from "../components/Header";
 
 let messageData = [];
-let searchText = "";
 
 export default class extends Component {
   state = {
     input: "",
     message: null,
+    searchText: "",
 
     loading: false,
     progress: 0,
@@ -54,10 +54,12 @@ export default class extends Component {
     ipcRenderer.on("message", this.handleMessage);
 
     ipcRenderer.on("selected-directory", (event, path) => {
-      this.setState({ loading: false });
+      this.setState({ loading: true });
     });
 
     ipcRenderer.on("progress", this.handleProgress);
+
+    ipcRenderer.on("executed-database", this.handleQuery);
   }
 
   componentWillUnmount() {
@@ -75,6 +77,11 @@ export default class extends Component {
     this.setState({ progress });
   };
 
+  handleQuery = (event, dataShow) => {
+    messageData = dataShow;
+    this.setState({ dataShow });
+  };
+
   handleChange = event => {
     this.setState({ input: event.target.value });
   };
@@ -85,26 +92,29 @@ export default class extends Component {
     this.setState({ message: null });
   };
 
-  handleBrowse = event => {
+  onBrowse = () => {
     ipcRenderer.send("open-file-dialog");
-    this.setState({ loading: true });
   };
 
-  handleRowClick = data => {
+  onRefresh = () => {
+    ipcRenderer.send("query-database","EmapiTaxHeartbeatRsp");
+  };
+
+  onRowClick = data => {
     this.setState({ genaralTab: data, detailsTab: data });
   };
 
-  onInputChange = e => {
-    searchText = e.target.value;
+  onInputChange = event => {
+    this.setState({searchText:event.target.value })
   };
 
   onSearch = () => {
     //const { searchText } = this.state;
-    const reg = new RegExp(searchText, "gi");
-    if (searchText != "" && searchText.length > 2) {
+    const reg = new RegExp(this.state.searchText, "gi");
+    if (this.state.searchText != "" && this.state.searchText.length > 2) {
       this.setState({
         searchDropdownVisible: false,
-        searched: !!searchText,
+        searched: !!this.state.searchText,
         dataShow: messageData
           .map(record => {
             const match = record.message.match(reg);
@@ -135,7 +145,7 @@ export default class extends Component {
     } else {
       this.setState({
         searchDropdownVisible: false,
-        searched: !!searchText,
+        searched: !!this.state.searchText,
         dataShow: [...messageData]
       });
     }
@@ -473,7 +483,7 @@ export default class extends Component {
                     scroll={{ y: "27vh" }}
                     pagination={{ showQuickJumper: true, pageSize: 50 }}
                     /*loading={this.state.loading}*/
-                    onRowClick={record => this.handleRowClick(record.message)}
+                    onRowClick={record => this.onRowClick(record.message)}
                   />
                 </Row>
                 <Row style={{ height: "50vh", backgroundColor: "#fff" }}>
@@ -496,7 +506,7 @@ export default class extends Component {
                 <Collapse defaultActiveKey={["1"]}>
                   <Panel header="Application" key="1">
                     <p>
-                      <a onClick={this.handleBrowse}>
+                      <a onClick={this.onBrowse}>
                         <Icon type="link" /> Import Logs...
                       </a>
                     </p>
@@ -506,7 +516,7 @@ export default class extends Component {
                       </a>
                     </p>
                     <p>
-                      <a>
+                      <a onClick={this.onRefresh}>
                         <Icon type="link" /> Refresh
                       </a>
                     </p>
