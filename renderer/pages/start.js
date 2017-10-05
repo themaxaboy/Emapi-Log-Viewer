@@ -156,32 +156,36 @@ export default class extends Component {
         filterDropdownVisible: false,
         filtered: !!searchText,
         //dataShow: alasql(`SELECT * FROM emapi WHERE message LIKE "%${searchText}%" and type = "EmapiInstrument"`)
-          dataShow: alasql(`SELECT * FROM emapi`)
-          .map(record => {
-            const match = record.message.match(reg);
-            if (!match) {
-              return null;
-            }
-            return {
-              ...record,
-              message: (
-                <span>
-                  {record.message
-                    .split(reg)
-                    .map(
-                      (text, i) =>
-                        i > 0
-                          ? [
-                              <span style={{ color: "#f50" }}>{match[0]}</span>,
-                              text
-                            ]
-                          : text
-                    )}
-                </span>
-              )
-            };
-          })
-          .filter(record => !!record)
+        dataShow: !searchText
+            ? alasql(`SELECT * FROM emapi`)
+            : alasql(`SELECT * FROM emapi`)
+                .map(record => {
+                  const match = record.message.match(reg);
+                  if (!match) {
+                    return null;
+                  }
+                  return {
+                    ...record,
+                    message: (
+                      <span>
+                        {record.message
+                          .split(reg)
+                          .map(
+                            (text, i) =>
+                              i > 0
+                                ? [
+                                    <span style={{ color: "#f50" }}>
+                                      {match[0]}
+                                    </span>,
+                                    text
+                                  ]
+                                : text
+                          )}
+                      </span>
+                    )
+                  };
+                })
+                .filter(record => !!record)
       },
       () => {
         this.setState({ searching: false });
