@@ -31,6 +31,7 @@ import Link from "next/link";
 import CssHeader from "../components/Header";
 
 let messageData = [];
+let emapiDocs;
 
 export default class extends Component {
   state = {
@@ -84,7 +85,7 @@ export default class extends Component {
                 singleLine.indexOf("[") + 1,
                 singleLine.indexOf("]")
               ),
-              message: singleLine.trim()
+              message: singleLine.substring(singleLine.indexOf(" ", 24) + 1).trim()
             });
           });
 
@@ -140,7 +141,38 @@ export default class extends Component {
   };
 
   onRowClick = data => {
-    this.setState({ genaralTab: data, detailsTab: data });
+    let details = this.convertRawToDetails(data);
+    this.setState({ genaralTab: JSON.stringify(details, null, 4), detailsTab: data });
+  };
+
+  convertRawToDetails = raw => {
+      if(!emapiDocs) {
+        emapiDocs = JSON.parse(fs.readFileSync('emapi_codes.json', "utf8"));
+      }  
+      window.raw = raw;
+      console.log(raw);
+      raw = raw.toString()
+      const msgId = raw.split("=",1);
+      const splitIdx = raw.indexOf('=');
+      if(msgId && splitIdx >= 0) {
+          const doc = emapiDocs[msgId] || null;
+          let details = {}
+          if(doc) {
+              const fields = doc.fields;
+              let data = raw.substring(splitIdx+1);
+              // remove bracket
+              data = data.substring(1, data.length-1);
+              const chucks = data.split('|');
+              chucks.forEach(function(item) {
+                const subCode = item.split("=", 1);
+                const subIdx = item.indexOf("=");
+                const subData = subIdx >= 0 ? item.substring(subIdx+1) : "";
+                details[fields[subCode]['name']] = subData;
+              });
+          }
+          return details;
+      }
+      return "Cannot parse, please check parsing function.";
   };
 
   onInputChange = event => {
@@ -525,7 +557,7 @@ export default class extends Component {
                       onRowClick={record => this.onRowClick(record.message)}
                     />
                   </Row>
-                  <Row style={{ height: "50vh", backgroundColor: "#fff" }}>
+                  <Row style={{ height: "50vh", backgroundColor: "#fff", whiteSpace: "pre-wrap" }}>
                     <Tabs
                       tabPosition="left"
                       defaultActiveKey="1"
