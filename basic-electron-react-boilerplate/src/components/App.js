@@ -597,8 +597,13 @@ export default class App extends React.Component {
                     size="small"
                     dataSource={this.state.dataShow}
                     columns={columns}
-                    scroll={{ y: "33vh" }}
+                    scroll={{ y: "38vh" }}
                     pagination={{
+                      style: {
+                        margin: 10,
+                        position: "absolute",
+                        right: 0
+                      },
                       showQuickJumper: true,
                       pageSize: 50
                     }}
@@ -625,9 +630,7 @@ export default class App extends React.Component {
                       }}
                     >
                       <Card>
-                        <span
-                          style={{ wordBreak: "break-all" }}
-                        >
+                        <span style={{ wordBreak: "break-all" }}>
                           {this.state.genaralTab}
                         </span>
                       </Card>
