@@ -81,9 +81,6 @@ export default class App extends React.Component {
   ];
 
   componentDidMount() {
-    // start listening the channel message
-    ipcRenderer.on("message", this.handleMessage);
-
     ipcRenderer.on("selected-directory", (event, path) => {
       this.setState({ loading: true }, this.readFileToDatebase(path));
     });
@@ -160,17 +157,6 @@ export default class App extends React.Component {
     });
   };
 
-  handleMessage = (event, message) => {
-    // receive a message from the main process and save it in the local state
-    this.setState({ message });
-  };
-
-  handleSubmit = event => {
-    event.preventDefault();
-    ipcRenderer.send("message", this.state.input);
-    this.setState({ message: null });
-  };
-
   onBrowse = () => {
     ipcRenderer.send("open-file-dialog");
   };
@@ -184,20 +170,24 @@ export default class App extends React.Component {
   };
 
   convertRawToDetails = raw => {
-    window.raw = raw;
-    console.log(raw);
+    /*window.raw = raw;
+    console.log(raw);*/
+
     raw = raw.toString();
     const msgId = raw.split("=", 1);
     const splitIdx = raw.indexOf("=");
+
     if (msgId && splitIdx >= 0) {
       const doc = emapiDocs[msgId] || null;
       let details = {};
+
       if (doc) {
         const fields = doc.fields;
         let data = raw.substring(splitIdx + 1);
         // remove bracket
         data = data.substring(1, data.length - 1);
         const chucks = data.split("|");
+        
         chucks.forEach(function(item) {
           const subCode = item.split("=", 1);
           const subIdx = item.indexOf("=");
@@ -205,7 +195,7 @@ export default class App extends React.Component {
           details[fields[subCode]["name"]] = subData;
         });
       }
-      console.log(details);
+      //console.log(JSON.stringify(details));
       return details;
     }
     return "Cannot parse, please check parsing function.";
@@ -605,7 +595,8 @@ export default class App extends React.Component {
                         right: 0
                       },
                       showQuickJumper: true,
-                      pageSize: 50
+                      pageSize: 50,
+                      size: "small"
                     }}
                     onRowClick={record => this.onRowClick(record.message)}
                   />
@@ -644,7 +635,7 @@ export default class App extends React.Component {
                     >
                       <ReactJson
                         style={{
-                          height: "40vh",
+                          height: "42vh",
                           overflowX: "hidden",
                           overflowY: "auto",
                           wordBreak: "break-all"
