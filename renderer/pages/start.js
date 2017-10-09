@@ -1,6 +1,7 @@
 import { Component } from "react";
 import { ipcRenderer } from "electron";
 import fs from "fs";
+import NoSSR from 'react-no-ssr';
 
 import {
   Button,
@@ -29,6 +30,7 @@ import Head from "next/head";
 import Link from "next/link";
 
 import CssHeader from "../components/Header";
+import FriendlyView from "../components/FriendlyView";
 
 let messageData = [];
 let emapiDocs;
@@ -42,12 +44,41 @@ export default class extends Component {
     progress: 0,
     searching: false,
     dataShow: [],
-    genaralTab: "",
-    detailsTab: "",
 
     searchText: "",
     filterDropdownVisible: false,
-    filtered: false
+    filtered: false,
+
+    openKeys: ["sub1"],
+    genaralTab: "",
+    detailsTab: ""
+  };
+
+  rootSubmenuKeys = [
+    "sub1",
+    "sub2",
+    "sub3",
+    "sub4",
+    "sub5",
+    "sub6",
+    "sub7",
+    "sub8",
+    "sub9",
+    "sub10",
+    "sub11"
+  ];
+
+  onOpenChange = openKeys => {
+    const latestOpenKey = openKeys.find(
+      key => this.state.openKeys.indexOf(key) === -1
+    );
+    if (this.rootSubmenuKeys.indexOf(latestOpenKey) === -1) {
+      this.setState({ openKeys });
+    } else {
+      this.setState({
+        openKeys: latestOpenKey ? [latestOpenKey] : []
+      });
+    }
   };
 
   componentDidMount() {
@@ -64,8 +95,7 @@ export default class extends Component {
   }
 
   readFileToDatebase = path => {
-    let directory = String(path);
-    let timeToInsert = new Date().getTime();
+    let directory = path.toString();
     messageData = [];
 
     fs.readdir(directory, (err, files) => {
@@ -85,13 +115,14 @@ export default class extends Component {
                 singleLine.indexOf("[") + 1,
                 singleLine.indexOf("]")
               ),
-              message: singleLine.substring(singleLine.indexOf(" ", 24) + 1).trim()
+              message: singleLine
+                .substring(singleLine.indexOf(" ", 24) + 1)
+                .trim()
             });
           });
 
           itemsProcessed++;
           if (itemsProcessed % 10 == 0) {
-            //console.log(parseInt(itemsProcessed / array.length * 100) + "%");
             this.setState({
               progress: parseInt(itemsProcessed / array.length * 100)
             });
@@ -101,11 +132,6 @@ export default class extends Component {
             this.setState({
               progress: 100
             });
-            // console.log(
-            //   "Read Finish in : " +
-            //     (new Date().getTime() - timeToInsert) / 1000 +
-            //     " Sec."
-            // );
 
             //Cheat and load your data directly
             alasql(
@@ -116,9 +142,6 @@ export default class extends Component {
               this.setState({ loading: false });
               messageData = [];
             });
-
-            //var res = alasql("SELECT * FROM emapi");
-            //console.log(res);
           }
         });
       });
@@ -142,37 +165,41 @@ export default class extends Component {
 
   onRowClick = data => {
     let details = this.convertRawToDetails(data);
-    this.setState({ genaralTab: JSON.stringify(details, null, 4), detailsTab: data });
+    this.setState({
+      detailsTab: JSON.stringify(details, null, 4),
+      genaralTab: data
+    });
   };
 
   convertRawToDetails = raw => {
-      if(!emapiDocs) {
-        emapiDocs = JSON.parse(fs.readFileSync('emapi_codes.json', "utf8"));
-      }  
-      window.raw = raw;
-      console.log(raw);
-      raw = raw.toString()
-      const msgId = raw.split("=",1);
-      const splitIdx = raw.indexOf('=');
-      if(msgId && splitIdx >= 0) {
-          const doc = emapiDocs[msgId] || null;
-          let details = {}
-          if(doc) {
-              const fields = doc.fields;
-              let data = raw.substring(splitIdx+1);
-              // remove bracket
-              data = data.substring(1, data.length-1);
-              const chucks = data.split('|');
-              chucks.forEach(function(item) {
-                const subCode = item.split("=", 1);
-                const subIdx = item.indexOf("=");
-                const subData = subIdx >= 0 ? item.substring(subIdx+1) : "";
-                details[fields[subCode]['name']] = subData;
-              });
-          }
-          return details;
+    if (!emapiDocs) {
+      emapiDocs = JSON.parse(fs.readFileSync("emapi_codes.json", "utf8"));
+    }
+
+    window.raw = raw;
+    console.log(raw);
+    raw = raw.toString();
+    const msgId = raw.split("=", 1);
+    const splitIdx = raw.indexOf("=");
+    if (msgId && splitIdx >= 0) {
+      const doc = emapiDocs[msgId] || null;
+      let details = {};
+      if (doc) {
+        const fields = doc.fields;
+        let data = raw.substring(splitIdx + 1);
+        // remove bracket
+        data = data.substring(1, data.length - 1);
+        const chucks = data.split("|");
+        chucks.forEach(function(item) {
+          const subCode = item.split("=", 1);
+          const subIdx = item.indexOf("=");
+          const subData = subIdx >= 0 ? item.substring(subIdx + 1) : "";
+          details[fields[subCode]["name"]] = subData;
+        });
       }
-      return "Cannot parse, please check parsing function.";
+      return details;
+    }
+    return "Cannot parse, please check parsing function.";
   };
 
   onInputChange = event => {
@@ -181,7 +208,7 @@ export default class extends Component {
 
   onSearch = () => {
     const { searchText } = this.state;
-    const reg = new RegExp(this.state.searchText, "gi");
+    const reg = new RegExp(searchText, "gi");
     this.setState(
       {
         searching: true,
@@ -189,35 +216,35 @@ export default class extends Component {
         filtered: !!searchText,
         //dataShow: alasql(`SELECT * FROM emapi WHERE message LIKE "%${searchText}%" and type = "EmapiInstrument"`)
         dataShow: !searchText
-            ? alasql(`SELECT * FROM emapi`)
-            : alasql(`SELECT * FROM emapi`)
-                .map(record => {
-                  const match = record.message.match(reg);
-                  if (!match) {
-                    return null;
-                  }
-                  return {
-                    ...record,
-                    message: (
-                      <span>
-                        {record.message
-                          .split(reg)
-                          .map(
-                            (text, i) =>
-                              i > 0
-                                ? [
-                                    <span style={{ color: "#f50" }}>
-                                      {match[0]}
-                                    </span>,
-                                    text
-                                  ]
-                                : text
-                          )}
-                      </span>
-                    )
-                  };
-                })
-                .filter(record => !!record)
+          ? alasql(`SELECT * FROM emapi`)
+          : alasql(`SELECT * FROM emapi`)
+              .map(record => {
+                const match = record.message.match(reg);
+                if (!match) {
+                  return null;
+                }
+                return {
+                  ...record,
+                  message: (
+                    <span>
+                      {record.message
+                        .split(reg)
+                        .map(
+                          (text, i) =>
+                            i > 0
+                              ? [
+                                  <span style={{ color: "#f50" }}>
+                                    {match[0]}
+                                  </span>,
+                                  text
+                                ]
+                              : text
+                        )}
+                    </span>
+                  )
+                };
+              })
+              .filter(record => !!record)
       },
       () => {
         this.setState({ searching: false });
@@ -316,7 +343,7 @@ export default class extends Component {
             size="large"
             spinning={this.state.loading}
           >
-            <CssHeader title="Start Page!" />
+            <CssHeader title="Emapi Log Viewer" />
             <Layout
               style={{
                 maxHeight: "100vh",
@@ -339,16 +366,23 @@ export default class extends Component {
                   style={{
                     backgroundColor: "#ffffff",
                     padding: 0,
-                    overflow: "auto"
+                    overflowX: "hidden",
+                    overflowY: "auto"
                   }}
                 >
                   <Menu
                     mode="inline"
-                    defaultSelectedKeys={["1"]}
+                    openKeys={this.state.openKeys}
+                    onOpenChange={this.onOpenChange}
+                    defaultSelectedKeys={["0"]}
                     defaultOpenKeys={["sub1"]}
-                    style={{ height: "100%", borderRight: 0 }}
+                    style={{ height: "98vh", borderRight: 0 }}
                     multiple={false}
                   >
+                    <Menu.Item key="0">
+                      <Icon type="line-chart" />All Messages
+                    </Menu.Item>
+
                     <SubMenu
                       key={"sub1"}
                       title={
@@ -536,6 +570,7 @@ export default class extends Component {
                     </SubMenu>
                   </Menu>
                 </Sider>
+
                 <Content
                   style={{
                     maxHeight: "100vh",
@@ -545,37 +580,60 @@ export default class extends Component {
                     paddingBottom: 0
                   }}
                 >
-                  <Row style={{ height: "50vh", backgroundColor: "#fff" }}>
-                    <Table
-                      style={{ backgroundColor: "#fff" }}
-                      size="small"
-                      dataSource={this.state.dataShow}
-                      columns={columns}
-                      scroll={{ y: "27vh" }}
-                      pagination={{ showQuickJumper: true, pageSize: 50 }}
-                      /*loading={this.state.loading}*/
-                      onRowClick={record => this.onRowClick(record.message)}
-                    />
-                  </Row>
-                  <Row style={{ height: "50vh", backgroundColor: "#fff", whiteSpace: "pre-wrap" }}>
-                    <Tabs
-                      tabPosition="left"
-                      defaultActiveKey="1"
-                      style={{ padding: 10 }}
+                  <Table
+                    style={{
+                      height: "50vh",
+                      maxHeight: "50vh",
+                      backgroundColor: "#fff"
+                    }}
+                    size="small"
+                    dataSource={this.state.dataShow}
+                    columns={columns}
+                    scroll={{ y: "33vh" }}
+                    pagination={{
+                      showQuickJumper: true,
+                      pageSize: 50
+                    }}
+                    onRowClick={record => this.onRowClick(record.message)}
+                  />
+
+                  <Tabs
+                    defaultActiveKey="1"
+                    style={{
+                      height: "50vh",
+                      maxHeight: "50vh",
+                      backgroundColor: "#fff"
+                    }}
+                  >
+                    <TabPane
+                      tab="Genaral"
+                      key="1"
+                      style={{
+                        overflow: "auto",
+                        whiteSpace: "pre-wrap",
+                        padding: 5
+                      }}
                     >
-                      <TabPane tab="Genaral" key="1">
-                        {this.state.genaralTab}
-                      </TabPane>
-                      <TabPane tab="Details" key="2">
-                        {this.state.detailsTab}
-                      </TabPane>
-                    </Tabs>
-                  </Row>
+                      {this.state.genaralTab}
+                    </TabPane>
+                    <TabPane
+                      tab="Details"
+                      key="2"
+                      style={{
+                        overflow: "auto",
+                        whiteSpace: "pre-wrap",
+                        padding: 5
+                      }}
+                    >
+                      {
+                      <NoSSR><FriendlyView src={"123"} /></NoSSR>}
+                    </TabPane>
+                  </Tabs>
                 </Content>
 
                 <Sider style={{ backgroundColor: "#ffffff", padding: 0 }}>
                   <Collapse defaultActiveKey={["1"]}>
-                    <Panel header="Application" key="1">
+                    <Panel header="Action" key="1">
                       <p>
                         <a onClick={this.onBrowse}>
                           <Icon type="link" /> Import Logs...
