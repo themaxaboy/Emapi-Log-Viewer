@@ -29,20 +29,6 @@ const { Header, Footer, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 import enUS from "antd/lib/locale-provider/en_US";
 
-const rootSubmenuKeys = [
-  "sub1",
-  "sub2",
-  "sub3",
-  "sub4",
-  "sub5",
-  "sub6",
-  "sub7",
-  "sub8",
-  "sub9",
-  "sub10",
-  "sub11"
-];
-
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -103,12 +89,13 @@ export default class App extends React.Component {
   };
 
   readFileToDatebase = directory => {
+    let id = 0;
     directory = directory.toString();
 
     this.setState({ dataShow: [] });
     alasql("DROP TABLE IF EXISTS emapi");
     alasql(
-      "CREATE TABLE emapi (date date,time time,type string,message string)"
+      "CREATE TABLE emapi (id int,date date,time time,type string,message string)"
     );
 
     fs.readdir(directory, (err, files) => {
@@ -122,6 +109,7 @@ export default class App extends React.Component {
 
           dataPack.map((singleLine, index) => {
             alasql.tables.emapi.data.push({
+              id: id++,
               date: singleLine.substring(0, 8),
               time: singleLine.substring(9, 21),
               type: singleLine.substring(
@@ -159,15 +147,15 @@ export default class App extends React.Component {
   };
 
   onRowClick = data => {
-    let details = this.convertRawToDetails(data);
+    let result = alasql(`SELECT message FROM emapi WHERE id = ${data.id}`);
+    let details = this.convertRawToDetails(result[0].message);
     this.setState({
       detailsTab: details,
-      genaralTab: data
+      genaralTab: data.message
     });
   };
 
   convertRawToDetails = raw => {
-    console.log(raw);
     raw = raw.toString();
     const msgId = raw.split("=", 1);
     const splitIdx = raw.indexOf("=");
@@ -593,6 +581,7 @@ export default class App extends React.Component {
                     }}
                     size="small"
                     dataSource={this.state.dataShow}
+                    rowKey={record => record.id}
                     columns={columns}
                     scroll={{ y: "38vh" }}
                     pagination={{
@@ -605,7 +594,7 @@ export default class App extends React.Component {
                       pageSize: 50,
                       size: "small"
                     }}
-                    onRowClick={record => this.onRowClick(record.message)}
+                    onRowClick={record => this.onRowClick(record)}
                   />
 
                   <Tabs
