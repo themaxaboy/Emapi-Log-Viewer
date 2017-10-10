@@ -1,16 +1,5 @@
-# build output
-dist
-renderer/.next
-renderer/out
-EmapiLog
-
-# dependencies
-node_modules
-
-# logs
-npm-debug.log
-*.lock
-*.log
-*.db
-*.db-shm
-*.db-wal
+node_modules/
+*npm-debug.log
+*.DS_Store
+dist/
+builds/
