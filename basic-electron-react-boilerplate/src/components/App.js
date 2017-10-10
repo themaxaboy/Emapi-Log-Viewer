@@ -187,11 +187,23 @@ export default class App extends React.Component {
         // remove bracket
         data = data.substring(1, data.length - 1);
         const chucks = data.split("|");
-        
+
         chucks.forEach(function(item) {
           const subCode = item.split("=", 1);
           const subIdx = item.indexOf("=");
-          const subData = subIdx >= 0 ? item.substring(subIdx + 1) : "";
+          let subData = subIdx >= 0 ? item.substring(subIdx + 1) : "";
+
+          if (subData == "T" || subData == "F") {
+            subData == "T" ? (subData = true) : (subData = false);
+          } else if (Number(subData) || subData == 0) {
+            subData = Number(subData);
+          } else if (
+            new Date(subData) !== "Invalid Date" &&
+            !isNaN(new Date(subData))
+          ) {
+            subData = new Date(subData);
+          }
+
           details[fields[subCode]["name"]] = subData;
         });
       }
