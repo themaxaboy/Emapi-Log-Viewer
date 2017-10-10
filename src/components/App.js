@@ -150,7 +150,7 @@ export default class App extends React.Component {
     let result = alasql(`SELECT message FROM emapi WHERE id = ${data.id}`);
     let details = this.convertRawToDetails(result[0].message);
     this.setState({
-      detailsTab: details,
+      detailsTab: {Type:data.type,Message:details},
       genaralTab: data.message
     });
   };
@@ -643,7 +643,7 @@ export default class App extends React.Component {
                             overflowY: "auto",
                             wordBreak: "break-all"
                           }}
-                          name="Emapi Message"
+                          name={false}
                           src={this.state.detailsTab}
                           iconStyle="circle"
                           displayDataTypes={false}
