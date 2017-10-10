@@ -29,7 +29,6 @@ const { Header, Footer, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 import enUS from "antd/lib/locale-provider/en_US";
 
-let messageData = [];
 const rootSubmenuKeys = [
   "sub1",
   "sub2",
@@ -103,9 +102,14 @@ export default class App extends React.Component {
     }
   };
 
-  readFileToDatebase = path => {
-    let directory = path.toString();
-    messageData = [];
+  readFileToDatebase = directory => {
+    directory = directory.toString();
+
+    this.setState({ dataShow: [] });
+    alasql("DROP TABLE IF EXISTS emapi");
+    alasql(
+      "CREATE TABLE emapi (date date,time time,type string,message string)"
+    );
 
     fs.readdir(directory, (err, files) => {
       let itemsProcessed = 0;
@@ -117,7 +121,7 @@ export default class App extends React.Component {
           let dataPack = data.trim().split(/\n/);
 
           dataPack.map((singleLine, index) => {
-            messageData.push({
+            alasql.tables.emapi.data.push({
               date: singleLine.substring(0, 8),
               time: singleLine.substring(9, 21),
               type: singleLine.substring(
@@ -138,19 +142,12 @@ export default class App extends React.Component {
           }
 
           if (itemsProcessed === array.length) {
-            this.setState({
-              progress: 100
-            });
-
-            //Cheat and load your data directly
-            alasql(
-              "CREATE TABLE emapi (date date,time time,type string,message string)"
+            this.setState(
+              { progress: 100, dataShow: alasql.tables.emapi.data },
+              () => {
+                this.setState({ loading: false });
+              }
             );
-            alasql.tables.emapi.data = messageData;
-            this.setState({ dataShow: messageData }, () => {
-              this.setState({ loading: false });
-              messageData = [];
-            });
           }
         });
       });
@@ -170,9 +167,7 @@ export default class App extends React.Component {
   };
 
   convertRawToDetails = raw => {
-    /*window.raw = raw;
-    console.log(raw);*/
-
+    console.log(raw);
     raw = raw.toString();
     const msgId = raw.split("=", 1);
     const splitIdx = raw.indexOf("=");
@@ -307,7 +302,7 @@ export default class App extends React.Component {
               borderTopLeftRadius: 6,
               borderTopRightRadius: 6,
               boxShadow: "0 1px 6px rgba(0, 0, 0, .2)",
-              backgroundColor: "#fff"
+              backgroundColor: "#ffffff"
             }}
           >
             <Input
@@ -594,7 +589,7 @@ export default class App extends React.Component {
                     style={{
                       height: "50vh",
                       maxHeight: "50vh",
-                      backgroundColor: "#fff"
+                      backgroundColor: "#ffffff"
                     }}
                     size="small"
                     dataSource={this.state.dataShow}
@@ -614,11 +609,11 @@ export default class App extends React.Component {
                   />
 
                   <Tabs
-                    defaultActiveKey="2"
+                    defaultActiveKey="1"
                     style={{
                       height: "50vh",
                       maxHeight: "50vh",
-                      backgroundColor: "#fff"
+                      backgroundColor: "#ffffff"
                     }}
                   >
                     <TabPane
@@ -632,30 +627,47 @@ export default class App extends React.Component {
                         overflowY: "auto"
                       }}
                     >
-                      <Card>
-                        <span style={{ wordBreak: "break-all" }}>
-                          {this.state.genaralTab}
-                        </span>
-                      </Card>
+                      {this.state.genaralTab ? (
+                        <Card>
+                          <span style={{ wordBreak: "break-all" }}>
+                            {this.state.genaralTab}
+                          </span>
+                        </Card>
+                      ) : (
+                        <Card>
+                          <span>No Data.</span>
+                        </Card>
+                      )}
                     </TabPane>
                     <TabPane
                       tab="Details"
                       key="2"
                       style={{
-                        paddingLeft: 5
+                        paddingLeft: 10
                       }}
                     >
-                      <ReactJson
-                        style={{
-                          height: "42vh",
-                          overflowX: "hidden",
-                          overflowY: "auto",
-                          wordBreak: "break-all"
-                        }}
-                        src={this.state.detailsTab}
-                        iconStyle="circle"
-                        displayDataTypes={false}
-                      />
+                      {this.state.detailsTab ? (
+                        <ReactJson
+                          style={{
+                            height: "42vh",
+                            overflowX: "hidden",
+                            overflowY: "auto",
+                            wordBreak: "break-all"
+                          }}
+                          name="Emapi Message"
+                          src={this.state.detailsTab}
+                          iconStyle="circle"
+                          displayDataTypes={false}
+                        />
+                      ) : (
+                        <Card
+                          style={{
+                            paddingRight: 10
+                          }}
+                        >
+                          <span>No Data.</span>
+                        </Card>
+                      )}
                     </TabPane>
                   </Tabs>
                 </Content>
