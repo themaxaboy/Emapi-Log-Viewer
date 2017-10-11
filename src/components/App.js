@@ -598,7 +598,7 @@ export default class App extends React.Component {
                   />
 
                   <Tabs
-                    defaultActiveKey="1"
+                    defaultActiveKey="2"
                     style={{
                       height: "50vh",
                       maxHeight: "50vh",
