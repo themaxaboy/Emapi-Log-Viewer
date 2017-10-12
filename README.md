@@ -1,2 +1,2 @@
 # Emapi Log Viewer
-Loggin mor than 1 Million
+Loggin more than 1 Million
