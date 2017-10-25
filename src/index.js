@@ -6,6 +6,7 @@ import App from "./components/App";
 let root = document.createElement("div");
 root.id = "root";
 document.body.appendChild(root);
+document.title = "Emapi Log Viewer";
 
 // Now we can render our application into it
 render(<App />, document.getElementById("root"));
