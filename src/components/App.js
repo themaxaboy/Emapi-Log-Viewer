@@ -707,7 +707,7 @@ export default class App extends React.Component {
               </Footer> */}
             </Layout>
           </Spin>
-          <style jsx>{`
+          <style>{`
             ::-webkit-scrollbar-track {
               -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
               background-color: #f5f5f5;
