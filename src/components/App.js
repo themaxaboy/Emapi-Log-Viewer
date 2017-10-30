@@ -150,7 +150,7 @@ export default class App extends React.Component {
     let result = alasql(`SELECT message FROM emapi WHERE id = ${data.id}`);
     let details = this.convertRawToDetails(result[0].message);
     this.setState({
-      detailsTab: {Type:data.type,Message:details},
+      detailsTab: { Type: data.type, Message: details },
       genaralTab: data.message
     });
   };
@@ -707,6 +707,21 @@ export default class App extends React.Component {
               </Footer> */}
             </Layout>
           </Spin>
+          <style jsx>{`
+            ::-webkit-scrollbar-track {
+              -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+              background-color: #f5f5f5;
+            }
+
+            ::-webkit-scrollbar {
+              width: 6px;
+              background-color: #f5f5f5;
+            }
+
+            ::-webkit-scrollbar-thumb {
+              background-color: #108ee9;
+            }
+          `}</style>
         </div>
       </LocaleProvider>
     );
