@@ -691,35 +691,21 @@ export default class App extends React.Component {
                   </Collapse>
                 </Sider>
               </Layout>
-
-              {/* <Footer
-                style={{
-                  overflow: 'auto',
-                  position: 'fixed',
-                  bottom: 0,
-                  height: "22px",
-                  maxWeight: "100vw",
-                  backgroundColor: "#f0f0f0",
-                  padding: 0,
-                }}
-              >
-              Footer                
-              </Footer> */}
             </Layout>
           </Spin>
           <style>{`
             ::-webkit-scrollbar-track {
               -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-              background-color: #f5f5f5;
+              background-color: #f1f1f1;
             }
 
             ::-webkit-scrollbar {
               width: 6px;
-              background-color: #f5f5f5;
+              background-color: #f1f1f1;
             }
 
             ::-webkit-scrollbar-thumb {
-              background-color: #108ee9;
+              background-color: #c1c1c1;
             }
           `}</style>
         </div>
