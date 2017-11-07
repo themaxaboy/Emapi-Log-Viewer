@@ -343,17 +343,6 @@ export default class App extends React.Component {
                 backgroundColor: "#f0f0f0"
               }}
             >
-              {/* <Layout
-                className="header"
-                style={{
-                  backgroundColor: "#21252b",
-                  height: "35px",
-                  marginBottom: "5px"
-                }}
-              >
-              Toolbar
-              </Layout> */}
-
               <Layout>
                 <Sider
                   style={{
@@ -686,7 +675,7 @@ export default class App extends React.Component {
                       </p>
                     </Panel>
                     <Panel header="Logs" key="2">
-                      <p>123456</p>
+                      <p></p>
                     </Panel>
                   </Collapse>
                 </Sider>
