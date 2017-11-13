@@ -5,3 +5,5 @@ dist/
 builds/
 *.lock
 *.lock
+*.lock
+package-lock.json
