@@ -4,8 +4,5 @@ node_modules/
 dist/
 builds/
 release/
-*.lock
-*.lock
-*.lock
 package-lock.json
 *.lock
