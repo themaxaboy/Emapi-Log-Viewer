@@ -36,6 +36,7 @@ export default class SiderMenu extends React.Component {
         openKeys: latestOpenKey ? [latestOpenKey] : []
       });
     }
+    this.props.sendData("...");
   };
 
   render() {

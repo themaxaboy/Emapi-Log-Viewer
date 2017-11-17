@@ -25,8 +25,8 @@ const TabPane = Tabs.TabPane;
 const { Header, Footer, Sider, Content } = Layout;
 import enUS from "antd/lib/locale-provider/en_US";
 
-import SiderMenu from "./SiderMenu";
-import ActionMenu from "./ActionMenu";
+import SiderMenu from "./SiderMenu/SiderMenu";
+import ActionMenu from "./ActionMenu/ActionMenu";
 
 export default class App extends React.Component {
   constructor(props) {
@@ -45,7 +45,8 @@ export default class App extends React.Component {
       filtered: false,
 
       genaralTab: "",
-      detailsTab: ""
+      detailsTab: "",
+      currentMenu:""
     };
   }
 
@@ -213,6 +214,11 @@ export default class App extends React.Component {
     );
   };
 
+  getDataSiderMenu = (data) => {
+    this.setState({currentMenu: data});
+    console.log(this.state.currentMenu);
+  };
+
   render() {
     const columns = [
       {
@@ -319,7 +325,7 @@ export default class App extends React.Component {
                     overflowY: "auto"
                   }}
                 >
-                  <SiderMenu />
+                  <SiderMenu sendData={this.getDataSiderMenu}/>
                 </Sider>
 
                 <Content
