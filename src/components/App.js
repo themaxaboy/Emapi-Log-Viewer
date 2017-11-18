@@ -5,8 +5,6 @@ import emapiDocs from "../assets/json/emapi_codes.json";
 import React from "react";
 import { ipcRenderer } from "electron";
 import fs from "fs";
-
-import ReactJson from "react-json-view";
 import {
   Button,
   Table,
@@ -15,18 +13,16 @@ import {
   Icon,
   Row,
   Col,
-  Tabs,
   Input,
   Progress,
-  Spin,
-  Card
+  Spin
 } from "antd";
-const TabPane = Tabs.TabPane;
 const { Header, Footer, Sider, Content } = Layout;
 import enUS from "antd/lib/locale-provider/en_US";
 
 import SiderMenu from "./SiderMenu/SiderMenu";
 import ActionMenu from "./ActionMenu/ActionMenu";
+import InformationTabs from "./InformationTabs/InformationTabs";
 
 export default class App extends React.Component {
   constructor(props) {
@@ -46,7 +42,7 @@ export default class App extends React.Component {
 
       genaralTab: "",
       detailsTab: "",
-      currentMenu:""
+      currentMenu: ""
     };
   }
 
@@ -214,8 +210,8 @@ export default class App extends React.Component {
     );
   };
 
-  getDataSiderMenu = (data) => {
-    this.setState({currentMenu: data});
+  getDataSiderMenu = data => {
+    this.setState({ currentMenu: data });
     console.log(this.state.currentMenu);
   };
 
@@ -325,7 +321,7 @@ export default class App extends React.Component {
                     overflowY: "auto"
                   }}
                 >
-                  <SiderMenu sendData={this.getDataSiderMenu}/>
+                  <SiderMenu sendData={this.getDataSiderMenu} />
                 </Sider>
 
                 <Content
@@ -361,74 +357,15 @@ export default class App extends React.Component {
                     onRowClick={record => this.onRowClick(record)}
                   />
 
-                  <Tabs
-                    defaultActiveKey="2"
-                    style={{
-                      height: "50vh",
-                      maxHeight: "50vh",
-                      backgroundColor: "#ffffff"
-                    }}
-                  >
-                    <TabPane
-                      tab="Genaral"
-                      key="1"
-                      style={{
-                        paddingLeft: 10,
-                        paddingRight: 10,
-                        height: "40vh",
-                        overflowX: "hidden",
-                        overflowY: "auto"
-                      }}
-                    >
-                      {this.state.genaralTab ? (
-                        <Card>
-                          <span style={{ wordBreak: "break-all" }}>
-                            {this.state.genaralTab}
-                          </span>
-                        </Card>
-                      ) : (
-                        <Card>
-                          <span>No Data.</span>
-                        </Card>
-                      )}
-                    </TabPane>
-                    <TabPane
-                      tab="Details"
-                      key="2"
-                      style={{
-                        paddingLeft: 10
-                      }}
-                    >
-                      {this.state.detailsTab ? (
-                        <ReactJson
-                          style={{
-                            height: "42vh",
-                            overflowX: "hidden",
-                            overflowY: "auto",
-                            wordBreak: "break-all"
-                          }}
-                          name={false}
-                          src={this.state.detailsTab}
-                          iconStyle="circle"
-                          displayDataTypes={false}
-                        />
-                      ) : (
-                        <Card
-                          style={{
-                            paddingRight: 10
-                          }}
-                        >
-                          <span>No Data.</span>
-                        </Card>
-                      )}
-                    </TabPane>
-                  </Tabs>
+                  <InformationTabs
+                    genaralTab={this.state.genaralTab}
+                    detailsTab={this.state.detailsTab}
+                  />
                 </Content>
 
                 <Sider style={{ backgroundColor: "#ffffff", padding: 0 }}>
                   <ActionMenu />
                 </Sider>
-                
               </Layout>
             </Layout>
           </Spin>
