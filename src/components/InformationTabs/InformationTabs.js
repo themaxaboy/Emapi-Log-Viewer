@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs,Card } from "antd";
+import { Tabs, Card } from "antd";
 import ReactJson from "react-json-view";
 
 const TabPane = Tabs.TabPane;

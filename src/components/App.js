@@ -25,30 +25,33 @@ import ActionMenu from "./ActionMenu/ActionMenu";
 import InformationTabs from "./InformationTabs/InformationTabs";
 
 export default class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      input: "",
-      message: null,
+  state = {
+    input: "",
+    message: null,
 
-      loading: false,
-      progress: 0,
-      searching: false,
-      dataShow: [],
+    loading: false,
+    searching: false,
+    dataShow: [],
 
-      searchText: "",
-      filterDropdownVisible: false,
-      filtered: false,
+    searchText: "",
+    filterDropdownVisible: false,
+    filtered: false,
 
-      genaralTab: "",
-      detailsTab: "",
-      currentMenu: ""
-    };
-  }
+    genaralTab: "",
+    detailsTab: "",
+    currentMenu: "",
+
+    currentPath: "",
+    selectedOption: ""
+  };
 
   componentDidMount() {
     ipcRenderer.on("selected-directory", (event, path) => {
-      this.setState({ loading: true }, this.readFileToDatebase(path));
+      this.setState({ loading: true }, this.readDirToDatebase(path));
+    });
+
+    ipcRenderer.on("selected-files", (event, files) => {
+      this.setState({ loading: true }, this.readFilesToDatebase(files));
     });
   }
 
@@ -56,15 +59,18 @@ export default class App extends React.Component {
     ipcRenderer.removeListener("message", this.handleMessage);
   }
 
-  readFileToDatebase = directory => {
+  readDirToDatebase = directory => {
     let id = 0;
     directory = directory.toString();
 
-    this.setState({ dataShow: [] });
-    alasql("DROP TABLE IF EXISTS emapi");
-    alasql(
-      "CREATE TABLE emapi (id int,date date,time time,type string,message string)"
-    );
+    this.setState({
+      dataShow: [],
+      loading: true,
+      currentPath: directory,
+      selectedOption: "directory"
+    });
+
+    this.dropCreateDatabase();
 
     fs.readdir(directory, (err, files) => {
       let itemsProcessed = 0;
@@ -91,21 +97,54 @@ export default class App extends React.Component {
           });
 
           itemsProcessed++;
-          if (itemsProcessed % 10 == 0) {
-            this.setState({
-              progress: parseInt(itemsProcessed / array.length * 100)
+          if (itemsProcessed === array.length) {
+            this.setState({ dataShow: alasql.tables.emapi.data }, () => {
+              this.setState({ loading: false });
             });
           }
-
-          if (itemsProcessed === array.length) {
-            this.setState(
-              { progress: 100, dataShow: alasql.tables.emapi.data },
-              () => {
-                this.setState({ loading: false });
-              }
-            );
-          }
         });
+      });
+    });
+  };
+
+  readFilesToDatebase = files => {
+    let id = 0;
+
+    this.setState({
+      dataShow: [],
+      loading: true,
+      currentPath: files,
+      selectedOption: "files"
+    });
+
+    this.dropCreateDatabase();
+
+    let itemsProcessed = 0;
+    files.map((filename, index, array) => {
+      fs.readFile(filename, "utf8", (err, data) => {
+        let dataPack = data.trim().split(/\n/);
+
+        dataPack.map((singleLine, index) => {
+          alasql.tables.emapi.data.push({
+            id: id++,
+            date: singleLine.substring(0, 8),
+            time: singleLine.substring(9, 21),
+            type: singleLine.substring(
+              singleLine.indexOf("[") + 1,
+              singleLine.indexOf("]")
+            ),
+            message: singleLine
+              .substring(singleLine.indexOf(" ", 24) + 1)
+              .trim()
+          });
+        });
+
+        itemsProcessed++;
+        if (itemsProcessed === array.length) {
+          this.setState({ dataShow: alasql.tables.emapi.data }, () => {
+            this.setState({ loading: false });
+          });
+        }
       });
     });
   };
@@ -215,6 +254,30 @@ export default class App extends React.Component {
     console.log(this.state.currentMenu);
   };
 
+  onRefresh = () => {
+    if (this.state.selectedOption == "directory") {
+      this.readDirToDatebase(this.state.currentPath);
+    } else if (this.state.selectedOption == "files") {
+      this.readFilesToDatebase(this.state.currentPath);
+    }
+  };
+
+  getDataActionMenu = action => {
+    action = action.target.getAttribute("data-action");
+    if (action == "refresh") {
+      this.onRefresh();
+    } else if (action == "export") {
+      window.print();
+    }
+  };
+
+  dropCreateDatabase = () => {
+    alasql("DROP TABLE IF EXISTS emapi");
+    alasql(
+      "CREATE TABLE emapi (id int,date date,time time,type string,message string)"
+    );
+  };
+
   render() {
     const columns = [
       {
@@ -301,11 +364,7 @@ export default class App extends React.Component {
     return (
       <LocaleProvider locale={enUS}>
         <div>
-          <Spin
-            tip={"Loading..." + this.state.progress + "%"}
-            size="large"
-            spinning={this.state.loading}
-          >
+          <Spin tip={"Loading..."} size="large" spinning={this.state.loading}>
             <Layout
               style={{
                 maxHeight: "100vh",
@@ -343,7 +402,7 @@ export default class App extends React.Component {
                     dataSource={this.state.dataShow}
                     rowKey={record => record.id}
                     columns={columns}
-                    scroll={{ y: "38vh" }}
+                    scroll={{ y: "40vh" }}
                     pagination={{
                       style: {
                         margin: 10,
@@ -364,7 +423,7 @@ export default class App extends React.Component {
                 </Content>
 
                 <Sider style={{ backgroundColor: "#ffffff", padding: 0 }}>
-                  <ActionMenu />
+                  <ActionMenu sendData={this.getDataActionMenu} />
                 </Sider>
               </Layout>
             </Layout>

@@ -4,12 +4,9 @@ import { Menu, Icon } from "antd";
 const { SubMenu } = Menu;
 
 export default class SiderMenu extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      openKeys: ["sub1"]
-    };
-  }
+  state = {
+    openKeys: ["sub1"]
+  };
 
   rootSubmenuKeys = [
     "sub1",
@@ -51,7 +48,8 @@ export default class SiderMenu extends React.Component {
         multiple={false}
       >
         <Menu.Item key="0">
-          <Icon type="line-chart" />All Messages
+          <Icon type="line-chart" />
+          <b>All Messages</b>
         </Menu.Item>
 
         <SubMenu
